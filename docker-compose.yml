@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: muratertik
+      POSTGRES_PASSWORD:
+      POSTGRES_DB: saratogapizza
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pizza-app:
+    build: .
+    volumes:
+      - ./src:/app/src   # mount local code into container for hot reload after the production just close these line
+      - ./target:/app/target
+    container_name: pizza-app
+    depends_on:
+      - postgres-db
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/saratogapizza
+      SPRING_DATASOURCE_USERNAME: muratertik
+      SPRING_DATASOURCE_PASSWORD:
+
+volumes:
+  postgres_data:
