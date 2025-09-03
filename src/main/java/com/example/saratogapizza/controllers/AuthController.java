@@ -2,9 +2,11 @@ package com.example.saratogapizza.controllers;
 
 import com.example.saratogapizza.repsonses.AuthResponse;
 import com.example.saratogapizza.requests.RefreshTokenRequest;
+import com.example.saratogapizza.requests.SigninRequest;
 import com.example.saratogapizza.requests.SignupRequest;
 import com.example.saratogapizza.services.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,15 +21,16 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody SignupRequest request) {
-        authService.signup(request);
-        return ResponseEntity.ok("User registered successfully");
+    public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request) {
+        AuthResponse authResponse = authService.signup(request);
+        ResponseEntity<AuthResponse> response = new ResponseEntity<>(authResponse, HttpStatus.CREATED);
+        return response;
     }
 
-//    @PostMapping("/signin")
-//    public ResponseEntity<AuthResponse> signin(@RequestBody AuthRequest request) {
-//        return ResponseEntity.ok(authService.signin(request));
-//    }
+    @PostMapping("/signin")
+    public ResponseEntity<AuthResponse> signin(@RequestBody SigninRequest request) {
+        return ResponseEntity.ok(authService.signin(request));
+    }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshTokenRequest request) {

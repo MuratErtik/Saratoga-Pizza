@@ -9,6 +9,7 @@ import com.example.saratogapizza.entities.User;
 import com.example.saratogapizza.repositories.UserRepository;
 import com.example.saratogapizza.repsonses.AuthResponse;
 import com.example.saratogapizza.requests.RefreshTokenRequest;
+import com.example.saratogapizza.requests.SigninRequest;
 import com.example.saratogapizza.requests.SignupRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,8 +35,8 @@ public class AuthService {
 
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
 
-    public void signup(SignupRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+    public AuthResponse signup(SignupRequest request) {
+        if (userRepository.findByEmail(request.getEmail())!=null) {
             throw new RuntimeException("User already exists");
         }
 
@@ -45,28 +46,66 @@ public class AuthService {
 
         user.setUserRole(UserRole.ROLE_CUSTOMER); // örnek: "USER" ya da "ADMIN"
         userRepository.save(user);
+
+        List<String> roles = new ArrayList<>();
+        roles.add(user.getUserRole().toString());
+        String accessToken = jwtUtils.generateAccessToken(user.getUserId(),user.getEmail(),roles);
+        String refreshToken = jwtUtils.generateRefreshToken(user.getUserId(),user.getEmail());
+
+        // Refresh token Redis'e kaydet
+        redisTemplate.opsForValue().set(
+                REFRESH_TOKEN_PREFIX + user.getUserId(),
+                refreshToken,
+                Duration.ofDays(7) // refresh token 7 gün geçerli
+        );
+
+        AuthResponse authResponse = new AuthResponse();
+
+        authResponse.setAccessToken(accessToken);
+
+        authResponse.setRefreshToken(refreshToken);
+
+        authResponse.setMessage("User registered successfully");
+
+        return authResponse;
+
     }
 
-//    public AuthResponse signin(AuthRequest request) {
-//        authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-//        );
-//
-//        User user = userRepository.findByEmail(request.getEmail())
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        String accessToken = jwtUtils.generateAccessToken(user);
-//        String refreshToken = jwtUtils.generateRefreshToken(user);
-//
-//        // Refresh token Redis'e kaydet
-//        redisTemplate.opsForValue().set(
-//                REFRESH_TOKEN_PREFIX + user.getId(),
-//                refreshToken,
-//                Duration.ofDays(7) // refresh token 7 gün geçerli
-//        );
-//
-//        return new AuthResponse(accessToken, refreshToken);
-//    }
+    public AuthResponse signin(SigninRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+
+        User user = userRepository.findByEmail(request.getEmail());
+
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        List<String> roles = new ArrayList<>();
+        roles.add(user.getUserRole().toString());
+
+
+        String accessToken = jwtUtils.generateAccessToken(user.getUserId(),user.getEmail(),roles);
+        String refreshToken = jwtUtils.generateRefreshToken(user.getUserId(),user.getEmail());
+
+        // Refresh token Redis'e kaydet
+        redisTemplate.opsForValue().set(
+                REFRESH_TOKEN_PREFIX + user.getUserId(),
+                refreshToken,
+                Duration.ofDays(7) // refresh token 7 gün geçerli
+        );
+
+        AuthResponse authResponse = new AuthResponse();
+
+        authResponse.setAccessToken(accessToken);
+
+        authResponse.setRefreshToken(refreshToken);
+
+        authResponse.setMessage("User registered successfully");
+
+        return authResponse;
+    }
 
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         Long userId = jwtUtils.getUserIdFromToken(request.getRefreshToken());
@@ -79,10 +118,23 @@ public class AuthService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         List<String> roles = new ArrayList<>();
+
         roles.add(user.getUserRole().toString());
+
+
+
         String newAccessToken = jwtUtils.generateAccessToken(user.getUserId(),user.getEmail(),roles );
-        return new AuthResponse(newAccessToken, request.getRefreshToken());
+        AuthResponse authResponse = new AuthResponse();
+
+        authResponse.setAccessToken(newAccessToken);
+
+        authResponse.setRefreshToken(storedRefresh);
+
+        authResponse.setMessage("Token refreshed successfully");
+
+        return authResponse;
     }
 
     public void logout(RefreshTokenRequest request) {
