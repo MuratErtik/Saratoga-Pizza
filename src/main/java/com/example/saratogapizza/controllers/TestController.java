@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/test")
+@RequestMapping("/api/public")
 @RequiredArgsConstructor
 public class TestController {
 
-    @GetMapping
+    @GetMapping("/test")
     public ResponseEntity<String> test() {
         return ResponseEntity.ok("Hello World 2");
     }

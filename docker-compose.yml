@@ -7,26 +7,39 @@ services:
     environment:
       POSTGRES_USER: muratertik
       POSTGRES_PASSWORD:
-      POSTGRES_DB: saratogapizza
+      POSTGRES_DB:
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   pizza-app:
     build: .
     volumes:
-      - ./src:/app/src   # mount local code into container for hot reload after the production just close these line
+      - ./src:/app/src   #for hot-reload on the dev process
       - ./target:/app/target
     container_name: pizza-app
     depends_on:
       - postgres-db
+      - redis
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/saratogapizza
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/dbname
       SPRING_DATASOURCE_USERNAME: muratertik
       SPRING_DATASOURCE_PASSWORD:
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
 
 volumes:
   postgres_data:
+  redis_data:
