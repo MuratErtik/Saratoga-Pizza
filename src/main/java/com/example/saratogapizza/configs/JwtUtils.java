@@ -32,7 +32,7 @@ public class JwtUtils {
         this.refreshTokenValidityMs = refreshTokenValidityMs;
     }
 
-    // --- Token üretimleri ---
+
 
     public String generateAccessToken(Long userId, String email, List<String> roles) {
         Date now = new Date();

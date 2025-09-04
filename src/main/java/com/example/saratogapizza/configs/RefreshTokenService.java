@@ -13,17 +13,17 @@ public class RefreshTokenService {
 
     private final StringRedisTemplate redisTemplate;
 
-    // Key prefixler
+    // Key prefixes
     private static final String REFRESH_PREFIX = "refresh:";
     private static final String BLACKLIST_PREFIX = "blacklist:";
 
-    // refresh token kaydet
+    // refresh token saving
     public void storeRefreshToken(String refreshToken, Long userId, long ttlSeconds) {
         String key = REFRESH_PREFIX + refreshToken;
         redisTemplate.opsForValue().set(key, String.valueOf(userId), ttlSeconds, TimeUnit.SECONDS);
     }
 
-    // refresh token doğrulama
+    // refresh token validating
     public boolean isRefreshTokenValid(String refreshToken) {
         String key = REFRESH_PREFIX + refreshToken;
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));

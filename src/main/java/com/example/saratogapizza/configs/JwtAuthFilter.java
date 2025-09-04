@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-    private final RefreshTokenService refreshTokenService; // blacklist kontrolü için
+    private final RefreshTokenService refreshTokenService; // for blacklist checking
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,20 +37,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7).trim();
 
         try {
-            // 1) token yapısal doğrulama
+
             if (!jwtUtils.validateToken(token)) {
                 unauthorized(response, "Invalid token");
                 return;
             }
 
-            // 2) blacklist kontrolü (jti)
+
             String jti = jwtUtils.getJtiFromToken(token);
             if (jti != null && refreshTokenService.isAccessTokenBlacklisted(jti)) {
                 unauthorized(response, "Token revoked");
                 return;
             }
 
-            // 3) claim'leri al ve principal oluştur
+
             Long userId = jwtUtils.getUserIdFromToken(token);
             String email = jwtUtils.getEmailFromToken(token);
 

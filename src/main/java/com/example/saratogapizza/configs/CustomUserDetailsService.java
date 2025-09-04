@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
-                .password(user.getPassword()) // bcrypt hash DB’de olmalı
+                .password(user.getPassword()) // bcrypt hash must be in DB
                 .authorities("ROLE_" + user.getUserRole().name())
                 .build();
     }
