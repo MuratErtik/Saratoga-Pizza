@@ -6,11 +6,13 @@ import com.example.saratogapizza.domains.UserRole;
 
 import com.example.saratogapizza.entities.User;
 
+import com.example.saratogapizza.exceptions.AuthException;
 import com.example.saratogapizza.repositories.UserRepository;
 import com.example.saratogapizza.repsonses.AuthResponse;
 import com.example.saratogapizza.requests.RefreshTokenRequest;
 import com.example.saratogapizza.requests.SigninRequest;
 import com.example.saratogapizza.requests.SignupRequest;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,35 +30,56 @@ import java.util.Optional;
 public class AuthService {
 
     private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
+
     private final AuthenticationManager authenticationManager;
+
     private final JwtUtils jwtUtils;
+
     private final StringRedisTemplate redisTemplate;
+
+    private final EmailService emailService;
 
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
 
-    public AuthResponse signup(SignupRequest request) {
+    public AuthResponse signup(SignupRequest request,String role) throws AuthException, MessagingException {
+
         if (userRepository.findByEmail(request.getEmail())!=null) {
-            throw new RuntimeException("User already exists");
+            throw new AuthException("Email already in use");
         }
 
         User user = new User();
+
         user.setEmail(request.getEmail());
+
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        user.setUserRole(UserRole.ROLE_CUSTOMER); // örnek: "USER" ya da "ADMIN"
+        if (role.equals("admin")) {
+            user.setUserRole(UserRole.ROLE_ADMIN);
+        }
+        else{
+            user.setUserRole(UserRole.ROLE_CUSTOMER);
+        }
+
+
         userRepository.save(user);
 
+        emailService.afterTheRegister(user.getEmail());
+
         List<String> roles = new ArrayList<>();
+
         roles.add(user.getUserRole().toString());
+
         String accessToken = jwtUtils.generateAccessToken(user.getUserId(),user.getEmail(),roles);
+
         String refreshToken = jwtUtils.generateRefreshToken(user.getUserId(),user.getEmail());
 
-        // Refresh token Redis'e kaydet
+        //  save to redis the refresh token
         redisTemplate.opsForValue().set(
                 REFRESH_TOKEN_PREFIX + user.getUserId(),
                 refreshToken,
-                Duration.ofDays(7) // refresh token 7 gün geçerli
+                Duration.ofDays(7) // refresh token valid for 7day
         );
 
         AuthResponse authResponse = new AuthResponse();
@@ -79,21 +102,22 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail());
 
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new AuthException("User not found");
         }
 
         List<String> roles = new ArrayList<>();
+
         roles.add(user.getUserRole().toString());
 
-
         String accessToken = jwtUtils.generateAccessToken(user.getUserId(),user.getEmail(),roles);
+
         String refreshToken = jwtUtils.generateRefreshToken(user.getUserId(),user.getEmail());
 
-        // Refresh token Redis'e kaydet
+        // Refresh token save to redis
         redisTemplate.opsForValue().set(
                 REFRESH_TOKEN_PREFIX + user.getUserId(),
                 refreshToken,
-                Duration.ofDays(7) // refresh token 7 gün geçerli
+                Duration.ofDays(7) // refresh token valid for 7 days
         );
 
         AuthResponse authResponse = new AuthResponse();
@@ -110,7 +134,7 @@ public class AuthService {
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         Long userId = jwtUtils.getUserIdFromToken(request.getRefreshToken());
 
-        // Redis’te token var mı kontrol et
+        // check is there a token in Redis
         String storedRefresh = redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + userId);
         if (storedRefresh == null || !storedRefresh.equals(request.getRefreshToken())) {
             throw new RuntimeException("Invalid refresh token");
