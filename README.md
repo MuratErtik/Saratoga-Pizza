@@ -29,3 +29,37 @@ The project leverages modern technologies and best practices to ensure scalabili
 ## 🎯 Goal
 
 The goal of PizzaApp is to demonstrate a professional, full-featured pizza ordering system with modern backend practices, including asynchronous messaging, caching, security, and containerized deployment.
+
+---
+
+# 🔑 Auth Service
+
+The **Auth Service** is responsible for handling user authentication, registration, and token management in a secure and scalable way.
+
+---
+
+## ✨ Features
+
+### 📝 Signup (Registration)
+- Checks if the email is already registered.  
+- Creates a new user with a securely encoded password.  
+- Assigns role as **Admin** or **Customer** depending on the request.  
+- Saves the user into the database.  
+- Sends a confirmation email after successful registration.  
+- Generates an **Access Token** (short-lived) and a **Refresh Token** (7 days).  
+- Stores the refresh token in **Redis** for quick validation.  
+
+### 🔐 Signin (Login)
+- Authenticates user credentials with `AuthenticationManager`.  
+- Fetches the user from the database.  
+- Issues a new **Access Token** and **Refresh Token**.  
+- Saves the refresh token in **Redis**.  
+
+### ♻️ Refresh Token
+- Validates the refresh token against **Redis**.  
+- If valid, generates a new **Access Token** without requiring login again.  
+- Keeps the existing **Refresh Token** active until expiration.  
+
+### 🚪 Logout
+- Deletes the refresh token from **Redis**, immediately revoking the user’s session.  
+
