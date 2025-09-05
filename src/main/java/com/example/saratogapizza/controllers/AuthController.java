@@ -1,6 +1,6 @@
 package com.example.saratogapizza.controllers;
 
-import com.example.saratogapizza.repsonses.AuthResponse;
+import com.example.saratogapizza.responses.AuthResponse;
 import com.example.saratogapizza.requests.RefreshTokenRequest;
 import com.example.saratogapizza.requests.SigninRequest;
 import com.example.saratogapizza.requests.SignupRequest;

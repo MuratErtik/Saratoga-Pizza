@@ -8,7 +8,7 @@ import com.example.saratogapizza.entities.User;
 
 import com.example.saratogapizza.exceptions.AuthException;
 import com.example.saratogapizza.repositories.UserRepository;
-import com.example.saratogapizza.repsonses.AuthResponse;
+import com.example.saratogapizza.responses.AuthResponse;
 import com.example.saratogapizza.requests.RefreshTokenRequest;
 import com.example.saratogapizza.requests.SigninRequest;
 import com.example.saratogapizza.requests.SignupRequest;
@@ -24,7 +24,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
