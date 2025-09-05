@@ -6,8 +6,8 @@ import com.example.saratogapizza.exceptions.AuthException;
 import com.example.saratogapizza.exceptions.VerifyException;
 import com.example.saratogapizza.repositories.AddressRepository;
 import com.example.saratogapizza.repositories.UserRepository;
-import com.example.saratogapizza.repsonses.CompleteRegisterResponse;
-import com.example.saratogapizza.repsonses.VerifyAccountResponse;
+import com.example.saratogapizza.responses.CompleteRegisterResponse;
+import com.example.saratogapizza.responses.VerifyAccountResponse;
 import com.example.saratogapizza.requests.CustomerCompleteInfoRequest;
 import com.example.saratogapizza.requests.VerifyAccountRequest;
 import com.example.saratogapizza.utils.EmailVerifyCodeGenerator;
@@ -132,14 +132,15 @@ public class CustomerService {
         return response;
     }
 
-
-
-
-
-
-
-    //lastloginat integration
     //getuserinfo
+
+
+
+
+
+
+
+
     //change user info
     //PUT /api/users/me/password → Kullanıcı kendi şifresini günceller.
     //POST /api/users/me/password/reset-request → Şifre sıfırlama için mail/token gönderme (opsiyonel)

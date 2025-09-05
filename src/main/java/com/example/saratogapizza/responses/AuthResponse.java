@@ -1,4 +1,4 @@
-package com.example.saratogapizza.repsonses;
+package com.example.saratogapizza.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
