@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -69,7 +70,7 @@ public class AuthService {
 
         userRepository.save(user);
 
-        emailService.afterTheRegister(user.getEmail());
+//        emailService.afterTheRegister(user.getEmail());
 
         List<String> roles = new ArrayList<>();
 
@@ -85,6 +86,14 @@ public class AuthService {
                 refreshToken,
                 Duration.ofDays(7) // refresh token valid for 7day
         );
+
+        // Generate Verification code and save to Redis
+        String code = String.valueOf((int)(Math.random() * 900000) + 100000);
+        String key = "email:verify:" + user.getUserId();
+        redisTemplate.opsForValue().set(key, code, 5, TimeUnit.MINUTES);
+
+        // send Mail
+        emailService.sendVerificationEmail(user.getEmail(), code,user.getName(),user.getLastname());
 
         AuthResponse authResponse = new AuthResponse();
 
