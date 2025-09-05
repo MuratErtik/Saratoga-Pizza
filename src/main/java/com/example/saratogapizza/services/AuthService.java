@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +68,7 @@ public class AuthService {
             user.setUserRole(UserRole.ROLE_CUSTOMER);
         }
 
+        user.setLastLoginAt(LocalDateTime.now());
 
         userRepository.save(user);
 
@@ -132,6 +134,10 @@ public class AuthService {
                 refreshToken,
                 Duration.ofDays(7) // refresh token valid for 7 days
         );
+
+        user.setLastLoginAt(LocalDateTime.now());
+
+        userRepository.save(user);
 
         AuthResponse authResponse = new AuthResponse();
 
