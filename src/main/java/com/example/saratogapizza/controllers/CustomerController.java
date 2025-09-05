@@ -4,8 +4,10 @@ import com.example.saratogapizza.configs.JwtUtils;
 import com.example.saratogapizza.repsonses.AuthResponse;
 import com.example.saratogapizza.repsonses.CompleteRegisterResponse;
 
+import com.example.saratogapizza.repsonses.VerifyAccountResponse;
 import com.example.saratogapizza.requests.CustomerCompleteInfoRequest;
 
+import com.example.saratogapizza.requests.VerifyAccountRequest;
 import com.example.saratogapizza.services.CustomerService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,24 @@ public class CustomerController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<VerifyAccountResponse> verifyAccount(
+            @RequestBody VerifyAccountRequest request,
+            @RequestHeader("Authorization") String jwt
+            ) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+        VerifyAccountResponse response = customerService.verifyAccount(request,userId);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
     }
 
 }
