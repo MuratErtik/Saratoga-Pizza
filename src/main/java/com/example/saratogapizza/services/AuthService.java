@@ -53,6 +53,10 @@ public class AuthService {
 
         user.setEmail(request.getEmail());
 
+        user.setName(request.getName());
+
+        user.setLastname(request.getLastname());
+
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         if (role.equals("admin")) {
