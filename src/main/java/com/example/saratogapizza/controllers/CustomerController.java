@@ -1,10 +1,10 @@
 package com.example.saratogapizza.controllers;
 
 import com.example.saratogapizza.configs.JwtUtils;
-import com.example.saratogapizza.repsonses.AuthResponse;
-import com.example.saratogapizza.repsonses.CompleteRegisterResponse;
+import com.example.saratogapizza.requests.AddressRequest;
+import com.example.saratogapizza.responses.*;
 
-import com.example.saratogapizza.repsonses.VerifyAccountResponse;
+
 import com.example.saratogapizza.requests.CustomerCompleteInfoRequest;
 
 import com.example.saratogapizza.requests.VerifyAccountRequest;
@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/customer")
@@ -64,4 +66,89 @@ public class CustomerController {
 
     }
 
+    @GetMapping("/get-customer-info")
+    public ResponseEntity<GetCustomerInfoResponse> getAllInfo(@RequestHeader("Authorization") String jwt) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+        GetCustomerInfoResponse response = customerService.getAllInfo(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
+
+
+    @GetMapping("/get-customer-addresses")
+    public ResponseEntity<Set<GetCustomerAddressesResponse>> getAddressInfo(
+            @RequestHeader("Authorization") String jwt) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+
+        Set<GetCustomerAddressesResponse> response = customerService.getAddressInfo(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
+
+    @PostMapping("/add-customer-addresses")
+    public ResponseEntity<AddNewAddressResponse> addNewAddress(
+            @RequestHeader("Authorization") String jwt, @RequestBody AddressRequest request
+            ) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+
+        AddNewAddressResponse response = customerService.addNewAddress(userId,request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
+
+    @DeleteMapping("/delete-customer-addresses/{addressId}")
+    public ResponseEntity<DeleteNewAddressResponse> deleteNewAddress(
+            @RequestHeader("Authorization") String jwt, @PathVariable Long addressId
+    ) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+
+        DeleteNewAddressResponse response = customerService.deleteNewAddress(userId,addressId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
+
+    @PutMapping("/change-customer-addresses/{addressId}")
+    public ResponseEntity<ChangeNewAddressResponse> changeNewAddress(
+            @RequestHeader("Authorization") String jwt, @PathVariable Long addressId,@RequestBody AddressRequest request
+    ) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+        ChangeNewAddressResponse response = customerService.changeAddress(userId,addressId,request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
 }
