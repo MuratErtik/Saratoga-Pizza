@@ -34,7 +34,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = authHeader.substring(7).trim();
+        String token = authHeader.substring(7)
+                .replaceAll("[\\n\\r\\t ]", "")       // klasik whitespace
+                .replace("\u00A0", "");
+
+        System.out.println("RAW HEADER = [" + authHeader + "]");
+        System.out.println("EXTRACTED TOKEN = [" + token + "]");
+
+        System.out.println("TOKEN LENGTH = " + token.length());
+
+        System.out.println("*******************************************");
+        for (char c : token.toCharArray()) {
+            if (Character.isWhitespace(c)) {
+                System.out.println("WHITESPACE CHAR CODE: " + (int)c);
+            }
+        }
+
+
+
+
+
 
         try {
 
