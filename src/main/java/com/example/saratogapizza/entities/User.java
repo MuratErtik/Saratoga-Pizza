@@ -16,20 +16,21 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true) // just id
+@ToString(exclude = {"addresses", "usedCoupons"}) // block loop
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long userId;
 
     @Enumerated(EnumType.STRING)
     private UserRole userRole = UserRole.ROLE_CUSTOMER;
 
     private String name;
-
     private String lastname;
 
     @Column(unique = true, nullable = false)
@@ -40,7 +41,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String  mobileNo;
+    private String mobileNo;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -52,14 +53,11 @@ public class User {
 
     private LocalDateTime lastLoginAt;
 
-    @OneToMany
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Address> addresses = new HashSet<>();
 
     @ManyToMany
     private Set<Coupon> usedCoupons = new HashSet<>();
 
-    int loyaltyPoints;
-
-
-
+    private int loyaltyPoints;
 }
