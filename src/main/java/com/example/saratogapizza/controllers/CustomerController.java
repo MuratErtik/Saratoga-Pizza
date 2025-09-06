@@ -2,6 +2,7 @@ package com.example.saratogapizza.controllers;
 
 import com.example.saratogapizza.configs.JwtUtils;
 import com.example.saratogapizza.requests.AddressRequest;
+import com.example.saratogapizza.requests.BankDetailsRequest;
 import com.example.saratogapizza.responses.*;
 
 
@@ -152,6 +153,93 @@ public class CustomerController {
 
     }
     //address CRUD ending...
+
+    //bankDetails CRUD starting...
+    @GetMapping("/get-customer-bank-details")
+    public ResponseEntity<Set<GetCustomerBankDetailsResponse>> getBankDetailsInfo(
+            @RequestHeader("Authorization") String jwt){
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+
+        Set<GetCustomerBankDetailsResponse> response = customerService.getBankDetailsInfo(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
+
+
+    @PostMapping("/add-customer-bank-details")
+    public ResponseEntity<AddNewBankDetailsResponse> addNewBankDetail(
+            @RequestHeader("Authorization") String jwt, @RequestBody BankDetailsRequest request
+    ) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+
+        AddNewBankDetailsResponse response = customerService.addNewBankDetail(userId,request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
+
+
+    @DeleteMapping("/delete-customer-bank-details/{bankDetailsId}")
+    public ResponseEntity<DeleteBankDetailsResponse> deleteBankDetails(
+            @RequestHeader("Authorization") String jwt, @PathVariable Long bankDetailsId
+    ) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+
+        DeleteBankDetailsResponse response = customerService.deleteBankDetails(userId,bankDetailsId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
+
+    @PutMapping("/change-customer-bank-details/{bankDetailsId}")
+    public ResponseEntity<ChangeBankDetailsResponse> changeBankDetails(
+            @RequestHeader("Authorization") String jwt, @PathVariable Long bankDetailsId,@RequestBody BankDetailsRequest request
+    ) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+        ChangeBankDetailsResponse response = customerService.changeBankDetails(userId,bankDetailsId,request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+    }
+
+
+    //bankDetails CRUD ending...
+
+
+
+
+
+
+
+
+
+
+
 
 
 }

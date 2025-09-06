@@ -3,11 +3,15 @@ package com.example.saratogapizza.services;
 import com.example.saratogapizza.entities.*;
 import com.example.saratogapizza.exceptions.AddressException;
 import com.example.saratogapizza.exceptions.AuthException;
+import com.example.saratogapizza.exceptions.BankDetailsException;
 import com.example.saratogapizza.exceptions.VerifyException;
 import com.example.saratogapizza.mappers.AddressMapper;
+import com.example.saratogapizza.mappers.BankDetailsMapper;
 import com.example.saratogapizza.repositories.AddressRepository;
+import com.example.saratogapizza.repositories.BankDetailsRepository;
 import com.example.saratogapizza.repositories.UserRepository;
 import com.example.saratogapizza.requests.AddressRequest;
+import com.example.saratogapizza.requests.BankDetailsRequest;
 import com.example.saratogapizza.responses.*;
 
 import com.example.saratogapizza.requests.CustomerCompleteInfoRequest;
@@ -19,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,6 +38,8 @@ public class CustomerService {
     private final AddressRepository addressRepository;
 
     private final StringRedisTemplate stringRedisTemplate;
+
+    private final BankDetailsRepository bankDetailsRepository;
 
     public CompleteRegisterResponse completeRegister(CustomerCompleteInfoRequest request,Long userId){
 
@@ -175,7 +182,9 @@ public class CustomerService {
 
         response.setLastLoginAt(user.getLastLoginAt());
 
-//        response.setBankDetails();
+        Set<GetCustomerBankDetailsResponse> bankDetailsResponses = getBankDetailsInfo(user.getUserId());
+
+        response.setBankDetails(bankDetailsResponses);
 
 //        response.setOrders();
 //
@@ -367,6 +376,153 @@ public class CustomerService {
         return response;
     }
     //address CRUD ending...
+
+
+    //bankDetails CRUD starting...
+    public Set<GetCustomerBankDetailsResponse> getBankDetailsInfo(Long userId) {
+
+        User user = userRepository.findByUserId(userId);
+
+        if(user == null){
+            throw new AuthException("User not found with id "+userId);
+        }
+        Set<BankDetails> bankDetails = bankDetailsRepository.findByUser(user);
+
+        return bankDetails.stream().map(this::mapToCustomerBankDetailsResponse).collect(Collectors.toSet());
+    }
+
+    private GetCustomerBankDetailsResponse mapToCustomerBankDetailsResponse(BankDetails bankDetails) {
+        return BankDetailsMapper.mapToCustomerBankDetailsResponse(bankDetails);
+    }
+
+    public AddNewBankDetailsResponse addNewBankDetail(Long userId, BankDetailsRequest request) {
+
+        User user = userRepository.findByUserId(userId);
+
+        if(user == null){
+            throw new AuthException("User not found with id "+userId);
+        }
+
+
+
+        BankDetails isSaved = bankDetailsRepository.findByUserAndAccountName(user,request.getAccountName());
+
+
+
+        if(isSaved != null){
+            throw new BankDetailsException("Bank details already exists");
+        }
+
+        BankDetails bankDetails = new BankDetails();
+
+        bankDetails.setAccountName(request.getAccountName());
+        bankDetails.setAccountNumber(request.getAccountNumber());
+        bankDetails.setBankName(request.getBankName());
+        bankDetails.setAccountHolderName(request.getAccountHolderName());
+        bankDetails.setIban(request.getIban());
+        bankDetails.setCvv(request.getCvv());
+        bankDetails.setLastValidDate(request.getLastValidDate());
+        bankDetails.setCreatedAt(LocalDateTime.now());
+        bankDetails.setUpdatedAt(LocalDateTime.now());
+        bankDetails.setUser(user);
+        bankDetailsRepository.save(bankDetails);
+
+
+        AddNewBankDetailsResponse response = new AddNewBankDetailsResponse();
+
+        response.setMessage("Successfully bank details added!");
+
+        return response;
+    }
+
+    public DeleteBankDetailsResponse deleteBankDetails(Long userId, Long bankDetailsId) {
+
+        User user = userRepository.findByUserId(userId);
+
+        if(user == null){
+            throw new AuthException("User not found with id "+userId);
+        }
+
+
+
+        BankDetails bankDetails = bankDetailsRepository.findByBankDetailsId(bankDetailsId);
+
+        if(bankDetails == null){
+            throw new BankDetailsException("Bank details not found");
+        }
+
+        bankDetailsRepository.delete(bankDetails);
+
+
+        DeleteBankDetailsResponse response = new DeleteBankDetailsResponse();
+
+        response.setMessage("Successfully deleted");
+
+        return response;
+    }
+
+    public ChangeBankDetailsResponse changeBankDetails(Long userId, Long bankDetailsId, BankDetailsRequest request) {
+
+        User user = userRepository.findByUserId(userId);
+
+        BankDetails bankDetails = bankDetailsRepository.findByBankDetailsId(bankDetailsId);
+
+//        BankDetails c = bankDetailsRepository.findByUserAndAccountName(user,request.getAccountName());
+
+//        if (c == null) {
+//            throw new BankDetailsException("No bank details found with given account name");
+//        }
+
+//        if (!Objects.equals(c.getBankDetailsId(), bankDetails.getBankDetailsId())) {
+//            throw new BankDetailsException("Does not match bank details");
+//        }
+
+
+
+        if(user == null){
+            throw new AuthException("User not found with id "+userId);
+        }
+
+        if(bankDetails == null){
+            throw new BankDetailsException("Bank details not found");
+        }
+
+        if(request.getAccountHolderName()!=null){
+            bankDetails.setAccountHolderName(request.getAccountHolderName());
+        }
+
+        if(request.getBankName()!=null){
+            bankDetails.setBankName(request.getBankName());
+        }
+        if(request.getIban()!=null){
+            bankDetails.setIban(request.getIban());
+        }
+        if(request.getAccountNumber()!=null){
+            bankDetails.setAccountNumber(request.getAccountNumber());
+        }
+        if(request.getAccountName()!=null){
+            bankDetails.setAccountNumber(request.getAccountName());
+        }
+        if(request.getLastValidDate()!=null){
+            bankDetails.setLastValidDate(request.getLastValidDate());
+        }
+        if(request.getCvv()!=null){
+            bankDetails.setCvv(request.getCvv());
+        }
+
+        bankDetails.setUser(user);
+
+        bankDetailsRepository.save(bankDetails);
+
+
+        ChangeBankDetailsResponse response = new ChangeBankDetailsResponse();
+
+        response.setMessage("Successfully changed bank details");
+
+        return response;
+    }
+    //bankDetails CRUD ending...
+
 
 
 
