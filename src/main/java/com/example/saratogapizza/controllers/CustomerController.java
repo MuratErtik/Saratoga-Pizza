@@ -81,7 +81,7 @@ public class CustomerController {
 
     }
 
-
+    //address CRUD starting...
     @GetMapping("/get-customer-addresses")
     public ResponseEntity<Set<GetCustomerAddressesResponse>> getAddressInfo(
             @RequestHeader("Authorization") String jwt) throws MessagingException {
@@ -151,4 +151,7 @@ public class CustomerController {
 
 
     }
+    //address CRUD ending...
+
+
 }

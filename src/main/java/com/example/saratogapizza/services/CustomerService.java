@@ -1,7 +1,6 @@
 package com.example.saratogapizza.services;
 
-import com.example.saratogapizza.entities.Address;
-import com.example.saratogapizza.entities.User;
+import com.example.saratogapizza.entities.*;
 import com.example.saratogapizza.exceptions.AddressException;
 import com.example.saratogapizza.exceptions.AuthException;
 import com.example.saratogapizza.exceptions.VerifyException;
@@ -18,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -141,7 +141,52 @@ public class CustomerService {
 
     //getuserinfo
     public GetCustomerInfoResponse getAllInfo(Long userId) {
-        return null;
+
+        User user = userRepository.findByUserId(userId);
+
+        if (user == null) throw new AuthException("User not found with id "+userId);
+
+        GetCustomerInfoResponse response = mapToCustomerInfoResponse(user);
+
+        return response;
+
+
+    }
+
+    private GetCustomerInfoResponse mapToCustomerInfoResponse(User user) {
+
+        GetCustomerInfoResponse response = new GetCustomerInfoResponse();
+
+        response.setName(user.getName());
+
+        response.setEmail(user.getEmail());
+
+        response.setMobileNo(user.getMobileNo());
+
+        Set<GetCustomerAddressesResponse> addresses = getAddressInfo(user.getUserId());
+
+        response.setAddresses(addresses);
+
+        response.setLastname(user.getLastname());
+
+        response.setVerified(user.isVerified());
+
+        response.setCreatedAt(user.getCreatedAt());
+
+        response.setLastLoginAt(user.getLastLoginAt());
+
+//        response.setBankDetails();
+
+//        response.setOrders();
+//
+//        response.setReviews();
+
+        response.setUsedCoupons(user.getUsedCoupons());
+
+        response.setLoyaltyPoints(user.getLoyaltyPoints());
+
+        return response;
+
     }
 
     //address CRUD starting...
@@ -154,8 +199,6 @@ public class CustomerService {
         Set<GetCustomerAddressesResponse> responses = addresses.stream().map(this::mapToAddressResponse).collect(Collectors.toSet());
 
         return responses;
-
-
 
     }
 
