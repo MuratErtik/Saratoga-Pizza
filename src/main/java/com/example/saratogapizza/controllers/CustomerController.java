@@ -1,14 +1,10 @@
 package com.example.saratogapizza.controllers;
 
 import com.example.saratogapizza.configs.JwtUtils;
-import com.example.saratogapizza.requests.AddressRequest;
-import com.example.saratogapizza.requests.BankDetailsRequest;
+import com.example.saratogapizza.requests.*;
 import com.example.saratogapizza.responses.*;
 
 
-import com.example.saratogapizza.requests.CustomerCompleteInfoRequest;
-
-import com.example.saratogapizza.requests.VerifyAccountRequest;
 import com.example.saratogapizza.services.CustomerService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -226,11 +222,23 @@ public class CustomerController {
 
 
     }
-
-
     //bankDetails CRUD ending...
 
 
+    @PutMapping("/change-customer-info")
+    public ResponseEntity<ChangeUserInfoResponse> changeBankDetails(
+            @RequestHeader("Authorization") String jwt,@RequestBody ChangeUserInfoRequest request
+    ) throws MessagingException {
+
+        String token = jwt.substring(7).trim();
+
+        Long customerId = jwtUtils.getUserIdFromToken(token);
+
+        ChangeUserInfoResponse response = customerService.changeOtherDetails(customerId,request);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+    }
 
 
 

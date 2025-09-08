@@ -10,13 +10,11 @@ import com.example.saratogapizza.mappers.BankDetailsMapper;
 import com.example.saratogapizza.repositories.AddressRepository;
 import com.example.saratogapizza.repositories.BankDetailsRepository;
 import com.example.saratogapizza.repositories.UserRepository;
-import com.example.saratogapizza.requests.AddressRequest;
-import com.example.saratogapizza.requests.BankDetailsRequest;
+import com.example.saratogapizza.requests.*;
 import com.example.saratogapizza.responses.*;
 
-import com.example.saratogapizza.requests.CustomerCompleteInfoRequest;
-import com.example.saratogapizza.requests.VerifyAccountRequest;
 import com.example.saratogapizza.utils.EmailVerifyCodeGenerator;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -40,6 +38,8 @@ public class CustomerService {
     private final StringRedisTemplate stringRedisTemplate;
 
     private final BankDetailsRepository bankDetailsRepository;
+
+    private final EmailService emailService;
 
     public CompleteRegisterResponse completeRegister(CustomerCompleteInfoRequest request,Long userId){
 
@@ -512,6 +512,8 @@ public class CustomerService {
 
         bankDetails.setUser(user);
 
+        bankDetails.setUpdatedAt(LocalDateTime.now());
+
         bankDetailsRepository.save(bankDetails);
 
 
@@ -523,10 +525,56 @@ public class CustomerService {
     }
     //bankDetails CRUD ending...
 
+    public ChangeUserInfoResponse changeOtherDetails(Long userId, ChangeUserInfoRequest request) throws MessagingException {
+
+        User user = userRepository.findByUserId(userId);
+
+        if(user == null){
+            throw new AuthException("User not found with id "+userId);
+        }
+
+        if (request.getName()!=null){
+            user.setName(request.getName());
+        }
+
+        if (request.getLastname()!=null){
+            user.setLastname(request.getLastname());
+        }
+
+        if (request.getEmail()!=null){
+            user.setEmail(request.getEmail());
+            //when user request the mail changes it ll be -> change mail,set verification as false and verify service should proceed.
+            user.setVerified(false);
+            String code = String.valueOf((int)(Math.random() * 900000) + 100000);
+            emailService.sendVerificationOfEmailChange(user.getEmail(), code,user.getName(),user.getLastname());
+
+        }
+
+        if (request.getMobileNo()!=null){
+            user.setMobileNo(request.getMobileNo());
+        }
+
+        user.setUpdatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        ChangeUserInfoResponse response = new ChangeUserInfoResponse();
+
+        response.setMessage("Successfully changed other details");
+
+        return response;
+
+    }
+
+    //review CRUD starting...
+
+    //review CRUD ending...
+
 
 
 
     //change user info
+
     //PUT /api/users/me/password → Kullanıcı kendi şifresini günceller.
     //POST /api/users/me/password/reset-request → Şifre sıfırlama için mail/token gönderme (opsiyonel)
     //POST /api/users/me/password/reset → Token doğrulanarak yeni şifre belirleme
