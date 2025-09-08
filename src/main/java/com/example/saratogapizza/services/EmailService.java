@@ -59,5 +59,28 @@ public class EmailService {
             throw new RuntimeException(e);
         }
     }
+
+    public void sendVerificationOfEmailChange(String email, String code,String name,String lastname) throws MessagingException {
+
+        try {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "utf-8");
+            String subject = "Verify Your new email address";
+            String text = "Dear"+ name +" "+lastname+" " +
+                    "\nCould you please complete your change of email with that code ->"+ code
+
+                    +"\nHave a great day!";
+
+            messageHelper.setSubject(subject);
+            messageHelper.setText(text);
+            messageHelper.setTo(email);
+
+            javaMailSender.send(mimeMessage);
+        } catch (MailException e) {
+            throw new MailSendException("failed to send mail");
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
 
