@@ -16,6 +16,7 @@ import com.example.saratogapizza.responses.*;
 import com.example.saratogapizza.utils.EmailVerifyCodeGenerator;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -40,6 +42,8 @@ public class CustomerService {
     private final BankDetailsRepository bankDetailsRepository;
 
     private final EmailService emailService;
+
+    private final RedisTemplate<String, String> redisTemplate;
 
     public CompleteRegisterResponse completeRegister(CustomerCompleteInfoRequest request,Long userId){
 
@@ -542,11 +546,19 @@ public class CustomerService {
         }
 
         if (request.getEmail()!=null){
+
             user.setEmail(request.getEmail());
+
             //when user request the mail changes it ll be -> change mail,set verification as false and verify service should proceed.
+
             user.setVerified(false);
+
             String code = String.valueOf((int)(Math.random() * 900000) + 100000);
+            String key = "email:verify:" + user.getUserId();
+            redisTemplate.opsForValue().set(key, code, 5, TimeUnit.MINUTES);
+
             emailService.sendVerificationOfEmailChange(user.getEmail(), code,user.getName(),user.getLastname());
+
 
         }
 
