@@ -61,5 +61,37 @@ The **Auth Service** is responsible for handling user authentication, registrati
 - Keeps the existing **Refresh Token** active until expiration.  
 
 ### 🚪 Logout
-- Deletes the refresh token from **Redis**, immediately revoking the user’s session.  
+- Deletes the refresh token from **Redis**, immediately revoking the user’s session.
+
+# 🔑 Password Management
+
+## 🔄 Change Password
+- Verifies the user by **userId**.  
+- Validates that the provided **email** matches the account.  
+- Checks if **oldPassword** is correct.  
+- Ensures **newPassword** and **confirmPassword** match.  
+- Encodes and updates the **new password**.  
+- Saves changes to the **database**.  
+- Returns a **success response**.  
+
+---
+
+## 📧 Reset Password (Forgot Password Flow)
+- Accepts an **email address**.  
+- If the user exists, generates a **unique reset token**.  
+- Saves the token in **Redis** with **15 minutes expiration**.  
+- Sends a **reset password link** (with **userId** & **token**) to the user via email.  
+- Always responds with  
+  *"If this email is registered, a reset link has been sent."*  
+  to prevent **account enumeration**.  
+
+---
+
+## 🔑 Reset Password via Token
+- Validates the token from **Redis** using **userId** and **token**.  
+- If valid, updates the user’s **password** with the new one.  
+- Deletes the used token from **Redis** (**one-time use**).  
+- Returns a **success response**.  
+
+  
 
