@@ -28,13 +28,15 @@ public class BankDetails {
     @Column(nullable = false)
     private String bankName;
 
-    @Column(nullable = false)
     private String iban;
 
     private String accountNumber;
-    private String swiftCode;
 
-    private boolean primaryAccount = false;
+    private String accountName;
+
+    private String lastValidDate;
+
+    private String cvv;
 
     @CreatedDate
     @Column(updatable = false)

@@ -28,7 +28,37 @@ public class GlobalException {
     }
 
     @ExceptionHandler(AddressException.class)
-    public ResponseEntity<ErrorDetail> handleAuthException(AddressException ae, WebRequest request) {
+    public ResponseEntity<ErrorDetail> handleAddressException(AddressException ae, WebRequest request) {
+
+        ErrorDetail errorDetail = new ErrorDetail();
+
+        errorDetail.setTimestamp(LocalDateTime.now());
+
+        errorDetail.setError(ae.getMessage());
+
+        errorDetail.setDetails(request.getDescription(false));
+
+        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+
+    }
+
+    @ExceptionHandler(VerifyException.class)
+    public ResponseEntity<ErrorDetail> handleVerifyException(VerifyException ae, WebRequest request) {
+
+        ErrorDetail errorDetail = new ErrorDetail();
+
+        errorDetail.setTimestamp(LocalDateTime.now());
+
+        errorDetail.setError(ae.getMessage());
+
+        errorDetail.setDetails(request.getDescription(false));
+
+        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+
+    }
+
+    @ExceptionHandler(BankDetailsException.class)
+    public ResponseEntity<ErrorDetail> handleBankDetailsException(BankDetailsException ae, WebRequest request) {
 
         ErrorDetail errorDetail = new ErrorDetail();
 
