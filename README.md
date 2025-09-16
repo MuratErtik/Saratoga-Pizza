@@ -94,4 +94,95 @@ The **Auth Service** is responsible for handling user authentication, registrati
 - Returns a **success response**.  
 
   
+# 👤 Customer Service
+
+The **Customer Service** is responsible for handling customer-specific operations such as completing registration, verifying accounts, managing user info, addresses, and bank details in the Saratoga Pizza system.  
+
+---
+
+## ✨ Features
+
+### 📝 Complete Registration
+- Enriches user profile after signup.  
+- Requires a valid **address**.  
+- Saves additional info such as **mobile number** and **addresses**.  
+- Prevents duplicate addresses.  
+- Returns success after completion.  
+
+---
+
+### 📧 Verify Account
+- Uses a verification code stored in **Redis**.  
+- Validates the provided code against the stored one.  
+- If valid:
+  - Marks the user as **verified**.  
+  - Deletes the verification code from Redis.  
+- If invalid or expired, throws an error.  
+
+---
+
+### 👀 Get Customer Info
+- Fetches all customer details by **userId**.  
+- Includes:
+  - Personal info (name, lastname, email, mobileNo).  
+  - Verification status.  
+  - Addresses.  
+  - Bank details.  
+  - Used coupons.  
+  - Loyalty points.  
+  - Account creation & last login timestamps.  
+
+---
+
+## 🏠 Address Management (CRUD)
+
+### 📋 Get Address Info
+- Retrieves all customer addresses.  
+
+### ➕ Add New Address
+- Adds a new address for the user.  
+- Prevents duplicate address names.  
+
+### ❌ Delete Address
+- Deletes an address by **addressId**.  
+- Ensures the address exists before deletion.  
+
+### 🔄 Change Address
+- Updates fields of an existing address selectively.  
+- Only provided fields are updated.  
+
+---
+
+## 💳 Bank Details Management (CRUD)
+
+### 📋 Get Bank Details Info
+- Retrieves all bank details linked to a user.  
+
+### ➕ Add New Bank Details
+- Adds a new bank account/credit card info.  
+- Prevents duplicates by **accountName**.  
+- Stores metadata (`createdAt`, `updatedAt`).  
+
+### ❌ Delete Bank Details
+- Deletes a bank detail by **bankDetailsId**.  
+- Ensures the detail exists before deletion.  
+
+### 🔄 Change Bank Details
+- Updates fields of a bank detail record selectively.  
+- Refreshes `updatedAt` timestamp.  
+
+---
+
+## 👤 Change User Info
+- Allows user to update:
+  - **Name, Lastname**.  
+  - **Email** (triggers new email verification flow).  
+  - **Mobile number**.  
+- When email is changed:
+  - Sets `verified=false`.  
+  - Generates a new verification code (5 minutes expiry in Redis).  
+  - Sends verification mail.  
+- Saves changes to database.  
+
+---
 
