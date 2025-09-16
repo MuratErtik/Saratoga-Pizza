@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -581,17 +580,6 @@ public class CustomerService {
     //review CRUD starting...
 
     //review CRUD ending...
-
-
-
-
-    //change user info
-
-    //PUT /api/users/me/password → Kullanıcı kendi şifresini günceller.
-    //POST /api/users/me/password/reset-request → Şifre sıfırlama için mail/token gönderme (opsiyonel)
-    //POST /api/users/me/password/reset → Token doğrulanarak yeni şifre belirleme
-
-
 
 
 
