@@ -1,5 +1,6 @@
 package com.example.saratogapizza.services;
 
+import com.example.saratogapizza.entities.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +75,30 @@ public class EmailService {
             messageHelper.setSubject(subject);
             messageHelper.setText(text);
             messageHelper.setTo(email);
+
+            javaMailSender.send(mimeMessage);
+        } catch (MailException e) {
+            throw new MailSendException("failed to send mail");
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public void resetPasswordMail(User user,String url) throws MessagingException {
+
+        try {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "utf-8");
+            String subject = "Password Reset Process";
+            String text = "Dear"+ user.getName() +" "+user.getLastname()+" Welcome to the Saratoga Pizza. " +
+                    "\nCould you please complete your password-reset  with this url ->"+ url
+
+                    +"\nHave a great day!";
+
+            messageHelper.setSubject(subject);
+            messageHelper.setText(text);
+            messageHelper.setTo(user.getEmail());
 
             javaMailSender.send(mimeMessage);
         } catch (MailException e) {
