@@ -12,6 +12,7 @@ The project leverages modern technologies and best practices to ensure scalabili
 - **Redis** – Caching layer to speed up frequently requested data like the product catalog.
 - **RabbitMQ** – Asynchronous messaging system to handle order events and kitchen notifications.
 - **Docker** – Containerized setup to make development and deployment seamless.
+- **Cloudinary** – Cloud-based image storage and management service for uploading and serving images efficiently.
 - **Spring Security & Validation** – Ensures secure and valid user interactions.
 - **Logging** – Comprehensive logging system to monitor HTTP requests, database operations, and internal events.
 
