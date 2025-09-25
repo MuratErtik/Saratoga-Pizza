@@ -71,4 +71,19 @@ public class GlobalException {
         return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
 
     }
+
+    @ExceptionHandler(CategoryException.class)
+    public ResponseEntity<ErrorDetail> handleCategoryException(CategoryException ae, WebRequest request) {
+
+        ErrorDetail errorDetail = new ErrorDetail();
+
+        errorDetail.setTimestamp(LocalDateTime.now());
+
+        errorDetail.setError(ae.getMessage());
+
+        errorDetail.setDetails(request.getDescription(false));
+
+        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+
+    }
 }
