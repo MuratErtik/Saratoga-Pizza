@@ -26,6 +26,10 @@ public class Deal {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private boolean active;
+    private String imageUrl;
+
+    @ManyToOne
+    private Category category;
 
     @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DealItem> items;
