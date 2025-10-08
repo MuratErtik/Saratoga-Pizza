@@ -12,10 +12,12 @@ import com.example.saratogapizza.requests.CreateProductRequest;
 import com.example.saratogapizza.responses.CreateProductResponse;
 import com.example.saratogapizza.responses.DeleteProductResponse;
 import com.example.saratogapizza.responses.GetAllProductResponse;
+import com.example.saratogapizza.responses.UpdateProductResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -177,4 +179,50 @@ public class ProductService {
         response.setMessage("Product deleted successfully");
         return response;
     }
+
+    public UpdateProductResponse updateProduct(CreateProductRequest request, Long productId) {
+
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductException("Product not found"));
+
+        if(request.getName()!=null) product.setName(request.getName());
+
+        if(request.getDescription()!=null) product.setDescription(request.getDescription());
+
+        if(request.getPrice()!=null){
+            if (request.getPrice().intValue()<0){
+                throw new ProductException("Price cannot be negative");
+            }
+            product.setPrice(request.getPrice());
+        }
+
+        //imagessss do not forget
+
+        if (request.isVegan()!=product.isVegan()) product.setVegan(request.isVegan());
+
+        if (request.isVegetarian()!=product.isVegetarian()) product.setVegetarian(request.isVegetarian());
+
+        if (request.getSpicyLevel()<0){
+                throw new ProductException("Spicy level cannot be negative");
+        }
+        product.setSpicyLevel(request.getSpicyLevel());
+
+        if(request.getPreparationTime()!=null){
+            if (request.getPreparationTime()<0){
+                throw new ProductException("Preparation time cannot be negative");
+            }
+            product.setPreparationTime(request.getPreparationTime());
+        }
+
+        if (request.getAllergens()!=null) product.setAllergens(request.getAllergens());
+
+        if (request.getTags()!=null) product.setTags(request.getTags());
+
+        if (request.isCustomizable()!=product.isCustomizable()) product.setCustomizable(request.isCustomizable());
+
+
+        UpdateProductResponse response = new UpdateProductResponse();
+        response.setMessage("Product updated successfully");
+        return response;
+    }
+
 }

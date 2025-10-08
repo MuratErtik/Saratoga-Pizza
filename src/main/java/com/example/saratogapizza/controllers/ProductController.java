@@ -90,8 +90,20 @@ public class ProductController {
         return ResponseEntity.ok(productService.deleteProduct(productId));
     }
 
-    @PutMapping("/public/product/delete-product/{productId}")
-    public ResponseEntity<DeleteProductResponse>
+    @PutMapping("/admin/product/update-product/{productId}")
+    public ResponseEntity<UpdateProductResponse>  updateProduct(@PathVariable Long productId,
+                                                              @RequestPart(value = "business", required = false) CreateProductRequest request,
+                                                              @RequestPart(value = "logo", required = false) List<MultipartFile>  images,
+                                                              @RequestHeader("Authorization") String jwt){
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+        if (images != null) {
+            request.setImages(images);
+        }
+
+        return ResponseEntity.ok(productService.updateProduct(request,productId));
+    }
 
 
 }
