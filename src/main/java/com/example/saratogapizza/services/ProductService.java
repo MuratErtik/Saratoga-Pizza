@@ -159,4 +159,10 @@ public class ProductService {
                 .toList();
     }
 
+    public GetAllProductResponse getProduct(Long productId) {
+
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductException("Product not found"));
+
+        return mapToGetAllProductResponse(product);
+    }
 }
