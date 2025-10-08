@@ -5,10 +5,7 @@ import com.example.saratogapizza.configs.JwtUtils;
 import com.example.saratogapizza.requests.AddCategoryRequest;
 import com.example.saratogapizza.requests.BusinessDetailsRequest;
 import com.example.saratogapizza.requests.CreateProductRequest;
-import com.example.saratogapizza.responses.BusinessDetailsResponse;
-import com.example.saratogapizza.responses.CategoryResponse;
-import com.example.saratogapizza.responses.CreateProductResponse;
-import com.example.saratogapizza.responses.GetAllProductResponse;
+import com.example.saratogapizza.responses.*;
 import com.example.saratogapizza.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -87,6 +84,14 @@ public class ProductController {
     public ResponseEntity<GetAllProductResponse> getProductById(@PathVariable Long productId){
         return ResponseEntity.ok(productService.getProduct(productId));
     }
+
+    @DeleteMapping("/public/product/delete-product/{productId}")
+    public ResponseEntity<DeleteProductResponse> deleteProduct(@PathVariable Long productId){
+        return ResponseEntity.ok(productService.deleteProduct(productId));
+    }
+
+    @PutMapping("/public/product/delete-product/{productId}")
+    public ResponseEntity<DeleteProductResponse>
 
 
 }

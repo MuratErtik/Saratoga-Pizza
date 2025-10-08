@@ -10,6 +10,7 @@ import com.example.saratogapizza.repositories.CategoryRepository;
 import com.example.saratogapizza.repositories.ProductRepository;
 import com.example.saratogapizza.requests.CreateProductRequest;
 import com.example.saratogapizza.responses.CreateProductResponse;
+import com.example.saratogapizza.responses.DeleteProductResponse;
 import com.example.saratogapizza.responses.GetAllProductResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -164,5 +165,16 @@ public class ProductService {
         Product product = productRepository.findById(productId).orElseThrow(() -> new ProductException("Product not found"));
 
         return mapToGetAllProductResponse(product);
+    }
+
+    public DeleteProductResponse deleteProduct(Long productId) {
+
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductException("Product not found"));
+
+        productRepository.delete(product);
+
+        DeleteProductResponse response = new DeleteProductResponse();
+        response.setMessage("Product deleted successfully");
+        return response;
     }
 }
