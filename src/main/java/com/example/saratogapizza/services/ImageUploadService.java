@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ImageUploadService {
@@ -32,6 +34,16 @@ public class ImageUploadService {
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                 ObjectUtils.asMap("resource_type", "auto"));
         return uploadResult.get("secure_url").toString();
+    }
+
+    public List<String> uploadImages(List<MultipartFile> files) throws IOException {
+        return files.stream().map(file -> {
+            try {
+                return uploadImage(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
     }
 
     public void deleteImage(String imageUrl) throws IOException {
