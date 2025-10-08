@@ -105,6 +105,16 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateProduct(request,productId));
     }
 
+    //search product and topseller
+
+    @GetMapping("/public/product/search-product-by-filters")
+    public ResponseEntity<List<GetAllProductResponse>> searchProduct(@RequestParam String search){
+
+        return ResponseEntity.ok(productService.searchProduct(search));
+
+
+    }
+
 
 }
 

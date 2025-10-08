@@ -225,4 +225,11 @@ public class ProductService {
         return response;
     }
 
+    public List<GetAllProductResponse> searchProduct(String search) {
+
+        List<Product> products = productRepository.findByNameContainingIgnoreCase(search);
+
+        return products.stream().map(this::mapToGetAllProductResponse).collect(Collectors.toList());
+
+    }
 }
