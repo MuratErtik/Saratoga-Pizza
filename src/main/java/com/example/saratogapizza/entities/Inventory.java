@@ -16,8 +16,8 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int stockQuantity; // mevcut stok adedi
-    private int reservedQuantity; // sepete eklenmiş ama ödenmemiş miktar
+    private int stockQuantity;
+    private int reservedQuantity; // in basket but did not sell yet
 
     @OneToOne
     @JoinColumn(name = "product_id")
