@@ -13,6 +13,7 @@ import com.example.saratogapizza.responses.CreateProductResponse;
 import com.example.saratogapizza.responses.GetAllProductResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -118,6 +119,44 @@ public class ProductService {
         response.setToppings(product.getToppings());
         return response;
 
+    }
+
+    public List<GetAllProductResponse> getProductsByFilters(
+            Long categoryId,
+            BigDecimal price,
+            boolean isVegetarian,
+            boolean isVegan,
+            int spicyLevel,
+            Double rating,
+            String tags) {
+
+        Specification<Product> spec = (root, query, cb) -> cb.conjunction();
+
+        if (categoryId != null)
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("category").get("id"), categoryId));
+
+        if (price != null)
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("price"), price));
+
+        if (isVegetarian)
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("isVegetarian"), true));
+
+        if (isVegan)
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("isVegan"), true));
+
+        if (spicyLevel > 0)
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("spicyLevel"), spicyLevel));
+
+        if (rating != null)
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("rating"), rating));
+
+        if (tags != null && !tags.isBlank())
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("tags")), "%" + tags.toLowerCase() + "%"));
+
+        return productRepository.findAll(spec)
+                .stream()
+                .map(this::mapToGetAllProductResponse)
+                .toList();
     }
 
 }

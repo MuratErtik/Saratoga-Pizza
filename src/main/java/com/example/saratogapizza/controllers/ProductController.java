@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -61,8 +62,26 @@ public class ProductController {
 
     }
 
-    //price,vegeterian,vegan,spicelevel,rating,tags,category
-    @GetMapping
+    @GetMapping("/public/product/get-product-by-filters")
+    public ResponseEntity<List<GetAllProductResponse>> getAllProductByCategory(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) BigDecimal price,
+            @RequestParam(required = false) boolean isVegetarian,
+            @RequestParam(required = false) boolean isVegan,
+            @RequestParam(required = false) int spicyLevel,
+            @RequestParam(required = false) Double rating,
+            @RequestParam(required = false) String tags){
+
+
+        return ResponseEntity.ok(productService.getProductsByFilters(categoryId,
+                                                                     price,
+                                                                     isVegetarian,
+                                                                     isVegan,
+                                                                     spicyLevel,
+                                                                     rating,
+                                                                     tags));
+
+    }
 
 
 }
