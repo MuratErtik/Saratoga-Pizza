@@ -306,14 +306,49 @@ public class ProductService {
 
         List<Deal> deals = dealRepository.findAll();
 
+        return deals.stream().map(this::mapToGetAllDealResponse).collect(Collectors.toList());
+
 
 
     }
-}
-public List<GetAllProductResponse> getAllProducts() {
 
-    List<Product> products = productRepository.findAll();
+    private GetAllDealResponse mapToGetAllDealResponse(Deal deal){
 
-    return products.stream().map(this::mapToGetAllProductResponse).collect(Collectors.toList());
+        GetAllDealResponse response = new GetAllDealResponse();
+
+        response.setId(deal.getId());
+
+        response.setTitle(deal.getTitle());
+
+        response.setDescription(deal.getDescription());
+
+        response.setDealPrice(deal.getDealPrice());
+
+        response.setStartDate(deal.getStartDate());
+        response.setEndDate(deal.getEndDate());
+
+        response.setImages(deal.getImages());
+
+        String categoryName = deal.getCategory().getName();
+
+        response.setCategoryName(categoryName);
+
+
+        response.setItems(deal.getItems().stream().map(this::mapToDealItemResponse).collect(Collectors.toList()));
+
+        return response;
+
+
+    }
+
+    private DealItemResponse mapToDealItemResponse(DealItem dealItem){
+        DealItemResponse response = new DealItemResponse();
+        response.setId(dealItem.getId());
+        response.setQuantity(dealItem.getQuantity());
+        response.setProductName(dealItem.getProduct().getName());
+        return response;
+
+    }
+
 
 }
