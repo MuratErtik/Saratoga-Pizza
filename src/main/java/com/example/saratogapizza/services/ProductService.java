@@ -376,4 +376,29 @@ public class ProductService {
     }
 
 
+    public UpdateDealResponse updateDeal(CreateDealRequest request, Long dealId) {
+
+        Deal deal = dealRepository.findById(dealId).orElseThrow(() -> new ProductException("Deal not found with id: " + dealId));
+
+        if (request.getTitle()!=null && !request.getTitle().isEmpty()) deal.setTitle(request.getTitle());
+
+        if (request.getDescription()!=null && !request.getDescription().isEmpty()) deal.setDescription(request.getDescription());
+        if (request.getDealPrice().intValue()<0){
+            throw new ProductException("Price cannot be negative");
+        }
+        deal.setDealPrice(request.getDealPrice());
+        if(request.getStartDate()!=null) deal.setStartDate(request.getStartDate());
+        if(request.getEndDate()!=null) deal.setEndDate(request.getEndDate());
+        if(request.isActive()!=deal.isActive()) deal.setActive(request.isActive());
+
+        //update dealItem //add or delete
+
+        UpdateDealResponse response = new UpdateDealResponse();
+        response.setMessage("Deal updated successfully");
+        return response;
+
+
+
+
+    }
 }

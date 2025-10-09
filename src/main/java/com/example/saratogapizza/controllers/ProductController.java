@@ -159,6 +159,21 @@ public class ProductController {
         return ResponseEntity.ok(productService.deleteDeal(dealId));
     }
 
+    @PutMapping("/admin/deal/update-deal/{dealId}")
+    public ResponseEntity<UpdateDealResponse>  updateDeal(@PathVariable Long dealId,
+                                                                @RequestPart(value = "deal", required = false) CreateDealRequest request,
+                                                                @RequestPart(value = "logo", required = false) List<MultipartFile>  images,
+                                                                @RequestHeader("Authorization") String jwt){
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+        if (images != null) {
+            request.setImages(images);
+        }
+
+        return ResponseEntity.ok(productService.updateDeal(request,dealId));
+    }
+
 
 
 
