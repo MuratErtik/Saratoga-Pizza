@@ -351,4 +351,11 @@ public class ProductService {
     }
 
 
+    public GetAllDealResponse getDeal(Long dealId) {
+
+        Deal deal = dealRepository.findById(dealId).orElseThrow(() -> new ProductException("Deal not found with id: " + dealId));
+
+        return mapToGetAllDealResponse(deal);
+    }
+
 }

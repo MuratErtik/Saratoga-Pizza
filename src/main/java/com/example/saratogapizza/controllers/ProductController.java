@@ -141,6 +141,11 @@ public class ProductController {
 
     }
 
+    @GetMapping("/public/deal/get-deal/{dealId}")
+    public ResponseEntity<GetAllDealResponse> getDealById(@PathVariable Long dealId){
+        return ResponseEntity.ok(productService.getDeal(dealId));
+    }
+
 
 
 
