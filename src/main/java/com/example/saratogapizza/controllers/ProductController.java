@@ -146,7 +146,13 @@ public class ProductController {
         return ResponseEntity.ok(productService.getDeal(dealId));
     }
 
+    @GetMapping("/public/deal/search-deal")
+    public ResponseEntity<List<GetAllDealResponse>> searchDeal(@RequestParam String search){
 
+        return ResponseEntity.ok(productService.searchDeal(search));
+
+
+    }
 
 
 

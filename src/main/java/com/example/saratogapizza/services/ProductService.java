@@ -358,4 +358,11 @@ public class ProductService {
         return mapToGetAllDealResponse(deal);
     }
 
+    public List<GetAllDealResponse> searchDeal(String search) {
+
+        List<Deal> deals = dealRepository.findByNameContainingIgnoreCase(search);
+        return deals.stream().map(this::mapToGetAllDealResponse).collect(Collectors.toList());
+    }
+
+
 }
