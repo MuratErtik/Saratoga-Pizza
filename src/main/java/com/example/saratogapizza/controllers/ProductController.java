@@ -4,6 +4,8 @@ package com.example.saratogapizza.controllers;
 import com.example.saratogapizza.configs.JwtUtils;
 import com.example.saratogapizza.requests.AddCategoryRequest;
 import com.example.saratogapizza.requests.BusinessDetailsRequest;
+import com.example.saratogapizza.requests.CreateDealItemRequest;
+import com.example.saratogapizza.requests.CreateDealRequest;
 import com.example.saratogapizza.requests.CreateProductRequest;
 import com.example.saratogapizza.responses.*;
 import com.example.saratogapizza.services.ProductService;
@@ -115,14 +117,34 @@ public class ProductController {
 
     }
 
+    //Deal and DealItem CRUD
+    @PostMapping(value = "/admin/deal/add", consumes = {"multipart/form-data"})
+    public ResponseEntity<CreateDealResponse> createDeal(
+            @RequestPart(value = "deal-item", required = true) CreateDealRequest request,
+            @RequestPart(value = "logo", required = false) List<MultipartFile>  images,
+            @RequestHeader("Authorization") String jwt
+    ) throws IOException {
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+        if (images != null) {
+            request.setImages(images);
+        }
+
+        return ResponseEntity.ok(productService.createDeal(request));
+    }
+
+    @GetMapping(value = "/public/deal/get-all-deal")
+    public ResponseEntity<List<GetAllDealResponse>> getAllDeal(){
+
+        return ResponseEntity.ok(productService.getAllDeal());
+
+    }
+
+
+
+
+
 
 }
-
-
-
-
-
-
-
-
 

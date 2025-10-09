@@ -1,18 +1,17 @@
 package com.example.saratogapizza.services;
 
-import com.example.saratogapizza.entities.Category;
-import com.example.saratogapizza.entities.Product;
-import com.example.saratogapizza.entities.ProductSize;
-import com.example.saratogapizza.entities.ProductTopping;
+import com.example.saratogapizza.entities.*;
 import com.example.saratogapizza.exceptions.CategoryException;
 import com.example.saratogapizza.exceptions.ProductException;
 import com.example.saratogapizza.repositories.CategoryRepository;
+import com.example.saratogapizza.repositories.DealItemRepository;
+import com.example.saratogapizza.repositories.DealRepository;
 import com.example.saratogapizza.repositories.ProductRepository;
+import com.example.saratogapizza.requests.CreateDealItemRequest;
+import com.example.saratogapizza.requests.CreateDealRequest;
 import com.example.saratogapizza.requests.CreateProductRequest;
-import com.example.saratogapizza.responses.CreateProductResponse;
-import com.example.saratogapizza.responses.DeleteProductResponse;
-import com.example.saratogapizza.responses.GetAllProductResponse;
-import com.example.saratogapizza.responses.UpdateProductResponse;
+import com.example.saratogapizza.responses.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,6 +36,10 @@ public class ProductService {
     private final ImageUploadService imageUploadService;
 
     private final CategoryRepository categoryRepository;
+
+    private final DealRepository dealRepository;
+
+    private final DealItemRepository dealItemRepository;
 
     public CreateProductResponse createProduct(CreateProductRequest request) throws IOException {
 
@@ -232,4 +237,83 @@ public class ProductService {
         return products.stream().map(this::mapToGetAllProductResponse).collect(Collectors.toList());
 
     }
+
+    @Transactional
+    public CreateDealResponse createDeal(CreateDealRequest request) throws IOException {
+
+
+
+        Deal deal = new Deal();
+
+        deal.setTitle(request.getTitle());
+        deal.setDescription(request.getDescription());
+
+        if (request.getDealPrice().intValue()<0){
+            throw new ProductException("Price cannot be negative");
+        }
+
+        deal.setDealPrice(request.getDealPrice());
+        deal.setStartDate(request.getStartDate());
+        deal.setEndDate(request.getEndDate());
+        deal.setActive(request.isActive());
+
+        if (request.getImages()!=null && !request.getImages().isEmpty()){
+            List<String> images = imageUploadService.uploadImages(request.getImages());
+            deal.setImages(images);
+        }
+
+        Category category = categoryRepository.findByName(request.getCategoryName());
+        deal.setCategory(category);
+
+        List<DealItem> dealItems = new ArrayList<>();
+
+        request.getDealItems().stream().map(dealItem -> mapToDealItem(dealItem, deal)).forEach(dealItems::add);
+
+        deal.setItems(dealItems);
+
+        dealItemRepository.saveAll(dealItems);
+
+        dealRepository.save(deal);
+
+        CreateDealResponse response = new CreateDealResponse();
+        response.setMessage("Deal created successfully");
+        return response;
+
+
+
+
+    }
+
+    private DealItem mapToDealItem(CreateDealItemRequest request, Deal deal) {
+
+        DealItem dealItem = new DealItem();
+
+        Product product = productRepository.findByName(request.getProductName());
+
+        if (product == null) throw new ProductException("Product not found");
+
+        dealItem.setProduct(product);
+
+        dealItem.setQuantity(request.getQuantity());
+
+        dealItem.setDeal(deal);
+
+        return dealItem;
+    }
+
+
+    public List<GetAllDealResponse> getAllDeal() {
+
+        List<Deal> deals = dealRepository.findAll();
+
+
+
+    }
+}
+public List<GetAllProductResponse> getAllProducts() {
+
+    List<Product> products = productRepository.findAll();
+
+    return products.stream().map(this::mapToGetAllProductResponse).collect(Collectors.toList());
+
 }
