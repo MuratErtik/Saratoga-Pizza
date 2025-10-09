@@ -365,4 +365,15 @@ public class ProductService {
     }
 
 
+    public DeleteDealResponse deleteDeal(Long dealId) {
+
+        Deal deal = dealRepository.findById(dealId).orElseThrow(() -> new ProductException("Deal not found with id: " + dealId));
+        dealRepository.delete(deal);
+        DeleteDealResponse response = new DeleteDealResponse();
+        response.setMessage("Deal deleted successfully");
+        return response;
+
+    }
+
+
 }

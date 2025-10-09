@@ -154,6 +154,11 @@ public class ProductController {
 
     }
 
+    @DeleteMapping("/public/deal/delete-deal/{dealId}")
+    public ResponseEntity<DeleteDealResponse> deleteDeal(@PathVariable Long dealId){
+        return ResponseEntity.ok(productService.deleteDeal(dealId));
+    }
+
 
 
 
