@@ -26,7 +26,9 @@ public class Deal {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private boolean active;
-    private String imageUrl;
+
+    @ElementCollection
+    private List<String> images;
 
     @ManyToOne
     private Category category;
