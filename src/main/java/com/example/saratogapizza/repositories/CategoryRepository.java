@@ -10,4 +10,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Category findByCategoryId(String categoryId);
 
     List<Category> findByParentCategory(Category parent);
+
+    Category findByName(String name);
 }
