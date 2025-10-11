@@ -217,6 +217,23 @@ public class ProductController {
         return ResponseEntity.ok(productService.createProductTopping(request,productId));
     }
 
+    @PutMapping(value = "/admin/product/{productId}/update/product-topping", consumes = {"multipart/form-data"})
+    public ResponseEntity<UpdateProductToppingResponse> updateProductTopping(
+            @RequestPart(value = "product-topping", required = true) CreateProductToppingRequest request,
+            @RequestPart(value = "logo", required = false) MultipartFile  image,
+            @PathVariable Long productId,
+            @RequestHeader("Authorization") String jwt
+    ) throws IOException {
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+        if (image != null) {
+            request.setImageUrl(image);
+        }
+
+        return ResponseEntity.ok(productService.updateProductTopping(request,productId));
+    }
+
 
 }
 

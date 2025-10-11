@@ -567,6 +567,40 @@ public class ProductService {
 
     }
 
+    @Transactional
+    public UpdateProductToppingResponse updateProductTopping(CreateProductToppingRequest request, Long productId) throws IOException {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException("Product not found"));
+
+        ProductTopping existingTopping = productToppingRepository.findByToppingNameAndProduct(request.getToppingName(), product)
+                .orElseThrow(() -> new ProductException("Product topping not found for this product"));
+
+        if (request.getExtraPrice() != null && request.getExtraPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new ProductException("Extra price cannot be negative");
+        }
+
+        if (request.getExtraPrice() != null) {
+            existingTopping.setExtraPrice(request.getExtraPrice());
+        }
+
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            String newImageUrl = imageUploadService.uploadImage(request.getImageUrl());
+            existingTopping.setImageUrl(newImageUrl);
+        }
+
+        if (request.getToppingName() != null && !request.getToppingName().isBlank()) {
+            existingTopping.setToppingName(request.getToppingName());
+        }
+
+        productToppingRepository.save(existingTopping);
+
+        UpdateProductToppingResponse response = new UpdateProductToppingResponse();
+        response.setMessage("Product topping updated successfully");
+        return response;
+    }
+
+
     //Product Topping CRUD ending...
 
 
