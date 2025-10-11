@@ -44,7 +44,7 @@ public class GetAllProductResponse {
 
     private String categoryName; // Pizza, Beverage, Desert vb.
 
-    private List<ProductSize> sizes; // Small, Mid, Big and differences of prices
+    private List<ProductSizeResponse> sizes; // Small, Mid, Big and differences of prices
 
     private List<ProductTopping> toppings; // Extra products
 
