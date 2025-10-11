@@ -234,6 +234,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateProductTopping(request,productId));
     }
 
+    @DeleteMapping(value = "/admin/product/{productId}/delete/product-topping/{productToppingId}")
+    public ResponseEntity<DeleteProductToppingResponse> deleteProductTopping(@PathVariable Long productId,@PathVariable Long productToppingId){
+        return ResponseEntity.ok(productService.deleteProductTopping(productId,productToppingId));
+    }
+
+
 
 }
 

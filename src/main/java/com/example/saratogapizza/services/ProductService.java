@@ -600,6 +600,34 @@ public class ProductService {
         return response;
     }
 
+    @Transactional
+    public DeleteProductToppingResponse deleteProductTopping(Long productId, Long productToppingId) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException("Product not found"));
+
+        ProductTopping productTopping = productToppingRepository.findById(productToppingId)
+                .orElseThrow(() -> new ProductException("Product topping not found"));
+
+        if (!productTopping.getProduct().getId().equals(product.getId())) {
+            throw new ProductException("This topping does not belong to the specified product");
+        }
+
+        List<ProductTopping> toppings = product.getToppings();
+        if (toppings != null) {
+            toppings.removeIf(t -> t.getId().equals(productToppingId));
+        }
+
+        productToppingRepository.delete(productTopping);
+
+        productRepository.save(product);
+
+        DeleteProductToppingResponse response = new DeleteProductToppingResponse();
+        response.setMessage("Product topping deleted successfully");
+        return response;
+    }
+
+
 
     //Product Topping CRUD ending...
 
