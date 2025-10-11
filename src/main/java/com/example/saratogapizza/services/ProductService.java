@@ -38,6 +38,8 @@ public class ProductService {
 
     private final ProductSizeRepository productSizeRepository;
 
+    private final ProductToppingRepository productToppingRepository;
+
     public CreateProductResponse createProduct(CreateProductRequest request) throws IOException {
 
         //check first product have been created already or not
@@ -123,9 +125,20 @@ public class ProductService {
         List<ProductSizeResponse> productSizes = new ArrayList<>();
         product.getSizes().stream().map(this::mapToGetAllProductSizeResponse).forEach(productSizes :: add);
         response.setSizes(productSizes);
-        response.setToppings(product.getToppings());
+        List<ProductToppingResponse> productToppings = new ArrayList<>();
+        product.getToppings().stream().map(this::mapToGetAllProductToppingResponse).forEach(productToppings :: add);
+        response.setToppings(productToppings);
         return response;
 
+    }
+
+    private ProductToppingResponse mapToGetAllProductToppingResponse(ProductTopping productTopping) {
+        ProductToppingResponse productToppingResponse = new ProductToppingResponse();
+        productToppingResponse.setId(productTopping.getId());
+        productToppingResponse.setToppingName(productTopping.getToppingName());
+        productToppingResponse.setExtraPrice(productTopping.getExtraPrice());
+        productToppingResponse.setImageUrl(productTopping.getImageUrl());
+        return productToppingResponse;
     }
 
     private ProductSizeResponse mapToGetAllProductSizeResponse(ProductSize product) {
@@ -500,6 +513,61 @@ public class ProductService {
 
     //Product Size CRUD ending...
 
+    //Product Topping CRUD starting...
+    @Transactional
+    public CreateProductToppingResponse createProductTopping(CreateProductToppingRequest request, Long productId) throws IOException {
+
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductException("Product not found"));
+
+        validateProductToppingRequest(request,product);
+
+        if (productToppingRepository.findByToppingNameAndProduct(request.getToppingName(),product).isPresent()){
+            throw new ProductException("Product Topping already exists");
+        }
+
+        ProductTopping productTopping = new ProductTopping();
+        productTopping.setProduct(product);
+        productTopping.setToppingName(request.getToppingName());
+        productTopping.setExtraPrice(request.getExtraPrice());
+
+        if (request.getImageUrl()!=null && !request.getImageUrl().isEmpty()){
+            String image = imageUploadService.uploadImage(request.getImageUrl());
+            productTopping.setImageUrl(image);
+        }
+
+        List<ProductTopping> productToppings = product.getToppings();
+        if (productToppings == null) {
+            productToppings = new ArrayList<>();
+        }
+        productToppings.add(productTopping);
+        product.setToppings(productToppings);
+
+        productRepository.save(product);
+
+        CreateProductToppingResponse response = new CreateProductToppingResponse();
+        response.setMessage("Product topping created successfully");
+        return response;
+
+
+    }
+
+    private void validateProductToppingRequest(CreateProductToppingRequest request,Product product) {
+
+        if (request.getToppingName() == null || request.getToppingName().isBlank()) {
+            throw new ProductException("Topping name cannot be empty");
+        }
+        if (request.getExtraPrice() == null || request.getExtraPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new ProductException("Extra price cannot be negative");
+        }
+        if (!product.isCustomizable()) {
+            throw new ProductException("Toppings cannot be added to non-customizable products");
+        }
+
+
+
+    }
+
+    //Product Topping CRUD ending...
 
 
 
