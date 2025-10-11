@@ -11,5 +11,5 @@ public interface DealRepository extends JpaRepository<Deal, Long> {
 
     Deal findById(long id);
 
-    List<Deal> findByNameContainingIgnoreCase(String name);
+    List<Deal> findByTitleContainingIgnoreCase(String name);
 }
