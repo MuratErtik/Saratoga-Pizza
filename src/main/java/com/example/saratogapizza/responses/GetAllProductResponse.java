@@ -46,7 +46,7 @@ public class GetAllProductResponse {
 
     private List<ProductSizeResponse> sizes; // Small, Mid, Big and differences of prices
 
-    private List<ProductTopping> toppings; // Extra products
+    private List<ProductToppingResponse> toppings; // Extra products
 
 }
 
