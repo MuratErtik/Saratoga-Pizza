@@ -4,10 +4,7 @@ import com.example.saratogapizza.entities.*;
 import com.example.saratogapizza.exceptions.CategoryException;
 import com.example.saratogapizza.exceptions.ProductException;
 import com.example.saratogapizza.repositories.*;
-import com.example.saratogapizza.requests.CreateDealItemRequest;
-import com.example.saratogapizza.requests.CreateDealRequest;
-import com.example.saratogapizza.requests.CreateProductRequest;
-import com.example.saratogapizza.requests.CreateProductSizeRequest;
+import com.example.saratogapizza.requests.*;
 import com.example.saratogapizza.responses.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -460,6 +457,31 @@ public class ProductService {
         if (request.getAdditionalPrice() == null || request.getAdditionalPrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new ProductException("Additional price cannot be negative");
         }
+    }
+
+    @Transactional
+    public UpdateProductSizeResponse updateProductSize(UpdateProductSizeRequest request) {
+
+        ProductSize productSize = productSizeRepository.findById(request.getProductId())
+                .orElseThrow(() -> new ProductException("Product size not found"));
+
+        if (request.getSizeName() != null && !request.getSizeName().isBlank()) {
+            productSize.setSizeName(request.getSizeName());
+        }
+
+        if (request.getAdditionalPrice() != null) {
+            if (request.getAdditionalPrice().compareTo(BigDecimal.ZERO) < 0) {
+                throw new ProductException("Additional price cannot be negative");
+            }
+            productSize.setAdditionalPrice(request.getAdditionalPrice());
+        }
+
+
+        productSizeRepository.save(productSize);
+
+        UpdateProductSizeResponse response = new UpdateProductSizeResponse();
+        response.setMessage("Product size updated successfully");
+        return response;
     }
 
 

@@ -183,5 +183,17 @@ public class ProductController {
         return ResponseEntity.ok(productService.createProductSize(request));
     }
 
+    @PutMapping(value = "/admin/product/size/update", consumes = {"multipart/form-data"})
+    public ResponseEntity<UpdateProductSizeResponse> updateProductSize(
+            @RequestPart(value = "product-size", required = true) UpdateProductSizeRequest request,
+            @RequestHeader("Authorization") String jwt
+    ) throws IOException {
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+
+        return ResponseEntity.ok(productService.updateProductSize(request));
+    }
+
 }
 
