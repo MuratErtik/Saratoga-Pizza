@@ -27,7 +27,7 @@ public class Product {
     private BigDecimal price;
 
     @ElementCollection
-    private Set<String> images;
+    private List<String> images;
 
     private boolean available = true;
 

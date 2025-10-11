@@ -15,7 +15,7 @@ public class DealItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer quantity; // Kaç adet ürün dahil (örn: 2 pizza, 1 kola)
+    private Integer quantity; //how many product include in this deal (etc. 2 pizza 1 coke)
 
     @ManyToOne
     @JoinColumn(name = "deal_id")
@@ -23,5 +23,5 @@ public class DealItem {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
-    private Product product; // Dahil edilen ürün
+    private Product product; //the product which include that deal
 }

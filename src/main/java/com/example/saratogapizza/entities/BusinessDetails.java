@@ -30,7 +30,6 @@ public class BusinessDetails {
     private String description;
     private String phone;
     private String email;
-    private String websiteUrl;
     private String logoUrl;
 
     private String openHours;
