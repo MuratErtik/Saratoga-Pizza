@@ -2,11 +2,7 @@ package com.example.saratogapizza.controllers;
 
 
 import com.example.saratogapizza.configs.JwtUtils;
-import com.example.saratogapizza.requests.AddCategoryRequest;
-import com.example.saratogapizza.requests.BusinessDetailsRequest;
-import com.example.saratogapizza.requests.CreateDealItemRequest;
-import com.example.saratogapizza.requests.CreateDealRequest;
-import com.example.saratogapizza.requests.CreateProductRequest;
+import com.example.saratogapizza.requests.*;
 import com.example.saratogapizza.responses.*;
 import com.example.saratogapizza.services.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -175,7 +171,17 @@ public class ProductController {
     }
 
 
+    @PostMapping(value = "/admin/product/size/add", consumes = {"multipart/form-data"})
+    public ResponseEntity<CreateProductSizeResponse> createProductSize(
+            @RequestPart(value = "product-size", required = true) CreateProductSizeRequest request,
+            @RequestHeader("Authorization") String jwt
+    ) throws IOException {
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
 
+
+        return ResponseEntity.ok(productService.createProductSize(request));
+    }
 
 }
 

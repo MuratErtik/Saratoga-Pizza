@@ -3,13 +3,11 @@ package com.example.saratogapizza.services;
 import com.example.saratogapizza.entities.*;
 import com.example.saratogapizza.exceptions.CategoryException;
 import com.example.saratogapizza.exceptions.ProductException;
-import com.example.saratogapizza.repositories.CategoryRepository;
-import com.example.saratogapizza.repositories.DealItemRepository;
-import com.example.saratogapizza.repositories.DealRepository;
-import com.example.saratogapizza.repositories.ProductRepository;
+import com.example.saratogapizza.repositories.*;
 import com.example.saratogapizza.requests.CreateDealItemRequest;
 import com.example.saratogapizza.requests.CreateDealRequest;
 import com.example.saratogapizza.requests.CreateProductRequest;
+import com.example.saratogapizza.requests.CreateProductSizeRequest;
 import com.example.saratogapizza.responses.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +38,8 @@ public class ProductService {
     private final DealRepository dealRepository;
 
     private final DealItemRepository dealItemRepository;
+
+    private final ProductSizeRepository productSizeRepository;
 
     public CreateProductResponse createProduct(CreateProductRequest request) throws IOException {
 
@@ -123,10 +123,20 @@ public class ProductService {
         response.setCustomizable(product.isCustomizable());
         String categoryName = product.getCategory().getName();
         response.setCategoryName(categoryName);
-        response.setSizes(product.getSizes());
+        List<ProductSizeResponse> productSizes = new ArrayList<>();
+        product.getSizes().stream().map(this::mapToGetAllProductSizeResponse).forEach(productSizes :: add);
+        response.setSizes(productSizes);
         response.setToppings(product.getToppings());
         return response;
 
+    }
+
+    private ProductSizeResponse mapToGetAllProductSizeResponse(ProductSize product) {
+        ProductSizeResponse response = new ProductSizeResponse();
+        response.setId(product.getId());
+        response.setSizeName(product.getSizeName());
+        response.setAdditionalPrice(product.getAdditionalPrice());
+        return response;
     }
 
     public List<GetAllProductResponse> getProductsByFilters(
@@ -238,6 +248,7 @@ public class ProductService {
 
     }
 
+    //Deal CRUD starting...
     @Transactional
     public CreateDealResponse createDeal(CreateDealRequest request) throws IOException {
 
@@ -360,7 +371,7 @@ public class ProductService {
 
     public List<GetAllDealResponse> searchDeal(String search) {
 
-        List<Deal> deals = dealRepository.findByNameContainingIgnoreCase(search);
+        List<Deal> deals = dealRepository.findByTitleContainingIgnoreCase(search);
         return deals.stream().map(this::mapToGetAllDealResponse).collect(Collectors.toList());
     }
 
@@ -401,4 +412,60 @@ public class ProductService {
 
 
     }
+
+
+    //Deal CRUD ending...
+
+    //Product Size CRUD starting...
+    @Transactional
+    public CreateProductSizeResponse createProductSize(CreateProductSizeRequest request) {
+
+        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new ProductException("Product not found"));
+
+        validateProductSizeRequest(request);
+
+        //check size
+        if (productSizeRepository.findBySizeNameAndProduct(request.getSizeName(),product).isPresent()){
+            throw new ProductException("Product size already exists");
+        }
+
+        ProductSize productSize = new ProductSize();
+
+        productSize.setSizeName(request.getSizeName());
+
+        productSize.setProduct(product);
+
+        productSize.setAdditionalPrice(request.getAdditionalPrice());
+
+        List<ProductSize> productSizes = product.getSizes();
+        if (productSizes == null) {
+            productSizes = new ArrayList<>();
+        }
+        productSizes.add(productSize);
+        product.setSizes(productSizes);
+
+        productRepository.save(product);
+
+        CreateProductSizeResponse response = new CreateProductSizeResponse();
+        response.setMessage("Product size created successfully");
+        return response;
+
+
+    }
+
+    private void validateProductSizeRequest(CreateProductSizeRequest request ) {
+        if (request.getSizeName() == null || request.getSizeName().isBlank()) {
+            throw new ProductException("Size name cannot be empty");
+        }
+        if (request.getAdditionalPrice() == null || request.getAdditionalPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new ProductException("Additional price cannot be negative");
+        }
+    }
+
+
+    //Product Size CRUD ending...
+
+
+
+
 }
