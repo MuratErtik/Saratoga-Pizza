@@ -484,6 +484,19 @@ public class ProductService {
         return response;
     }
 
+    public DeleteProductResponse deleteProductSize(Long sizeId) {
+
+        ProductSize productSize = productSizeRepository.findById(sizeId)
+                .orElseThrow(() -> new ProductException("Product size not found"));
+
+
+        productSizeRepository.delete(productSize);
+
+        DeleteProductResponse response = new DeleteProductResponse();
+        response.setMessage("Product size deleted successfully");
+        return response;
+    }
+
 
     //Product Size CRUD ending...
 

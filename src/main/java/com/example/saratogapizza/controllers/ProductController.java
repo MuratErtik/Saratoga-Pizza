@@ -195,5 +195,10 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateProductSize(request));
     }
 
+    @DeleteMapping("/admin/product-size/delete-size/{sizeId}")
+    public ResponseEntity<DeleteProductResponse> deleteProductSize(@PathVariable Long sizeId){
+        return ResponseEntity.ok(productService.deleteProductSize(sizeId));
+    }
+
 }
 
