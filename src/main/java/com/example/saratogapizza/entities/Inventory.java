@@ -20,8 +20,8 @@ public class Inventory {
     private int reservedQuantity; // in basket but did not sell yet
 
     @OneToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @JoinColumn(name = "product_size_id")
+    private ProductSize productSize;
 
     private LocalDateTime lastUpdated = LocalDateTime.now();
 }
