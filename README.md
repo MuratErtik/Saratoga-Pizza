@@ -241,3 +241,101 @@ All major operations are **transactional**, ensuring data consistency across mul
 6. Saves the product and returns success message.
 
 ---
+
+
+
+
+# 📦 Inventory Management Service
+
+The **Inventory Management Service** manages product stock levels for each product size in the Saratoga Pizza system.  
+It ensures that stock quantities are properly validated, updated, and synchronized during operations like basket updates and order confirmations.
+
+---
+
+## ✨ Features Overview
+
+| Category | Description |
+|-----------|-------------|
+| **Stock Creation** | Adds initial stock quantity for a given product size. |
+| **Stock Listing** | Lists all stock details or a specific product size’s stock. |
+| **Stock Update** | Updates stock quantity for a specific product size. |
+| **Basket Reservation** | Temporarily reserves stock when a user adds items to their basket. |
+| **Basket Removal** | Decreases reserved quantity when a user removes an item from their basket. |
+| **Order Confirmation** | Finalizes the reserved quantity and permanently decreases stock after order confirmation. |
+
+---
+
+## 🧱 Architecture and Dependencies
+
+The `InventoryService` collaborates with the following repositories and entities:
+
+- `InventoryRepository` – Handles persistence of stock and reservation data.  
+- `ProductRepository` – Ensures all operations are tied to existing products.  
+- `ProductSizeRepository` – Connects inventory to a specific product size.  
+
+All methods are **transactional** to ensure consistent updates across inventory changes.
+
+---
+
+## 🔩 Core Methods
+
+### ➕ Create Stock  
+**Method:** `createStock(CreateStockRequest request, Long productSizeId)`  
+
+#### Workflow:
+1. Finds the target `ProductSize`.  
+2. Ensures stock for this product size does not already exist.  
+3. Validates non-negative stock quantity.  
+4. Creates and saves a new `Inventory` record.  
+5. Returns confirmation with product name and stock amount.  
+
+---
+
+### 📋 List All Stock  
+**Method:** `listAllStock()`  
+
+Retrieves all inventory records and maps them to readable responses, including:
+- Product name  
+- Size  
+- Stock quantity  
+- Reserved quantity  
+- Price  
+- Category  
+- Availability status  
+- Last updated timestamp  
+
+---
+
+### 🔍 List Single Stock  
+**Method:** `listStock(Long productSizeId)`  
+
+Fetches detailed stock info for a specific product size.
+
+---
+
+### 🔄 Update Stock  
+**Method:** `updateStock(CreateStockRequest request, Long productSizeId)`  
+
+Validates and updates stock quantity for a given product size, refreshing the last updated timestamp.
+
+---
+
+### 🧺 Add Basket Update  
+**Method:** `addBasketUpdate(Long productSizeId, int quantity)`  
+
+Temporarily reserves items when the user adds them to their basket.  
+Validates that enough stock is available before reservation.
+
+---
+
+### ❌ Remove From Basket  
+**Method:** `removeFromBasketUpdate(Long productSizeId, int quantity)`  
+
+Reverses reserved quantities when the user removes items from their basket.  
+Prevents underflow (cannot go below 0).
+
+---
+
+### ✅ Confirm Order Stock Update  
+**Method:** `confirmOrderStockUpdate(Long productSizeId, int quantity)`  
+
