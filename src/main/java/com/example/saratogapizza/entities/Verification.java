@@ -21,7 +21,7 @@ public class Verification {
     @ManyToOne
     private User user;
 
-    private String verificationCode; // 6 haneli kod veya UUID token
+    private String verificationCode; // 6 digit code or UUID token
 
     @Enumerated(EnumType.STRING)
     private VerificationType type; // EMAIL, PHONE, PASSWORD_RESET
@@ -30,5 +30,5 @@ public class Verification {
 
     private LocalDateTime expiresAt;
 
-    private boolean verified = false; // true olursa kullanıldı
+    private boolean verified = false; //if it's true it had been used.
 }
