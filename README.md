@@ -187,3 +187,57 @@ The **Customer Service** is responsible for handling customer-specific operation
 
 ---
 
+
+# 🍕 Product Management Service
+
+The **Product Management Service** is responsible for handling all product-related operations in the Saratoga Pizza system, including product creation, updating, filtering, deletion, and management of related entities such as **Deals**, **Sizes**, and **Toppings**.  
+It ensures the business logic for menu customization, validation, and association between products and their variants.
+
+---
+
+## ✨ Features Overview
+
+| Category | Description |
+|-----------|-------------|
+| **Product CRUD** | Create, update, delete, and search for products with detailed validation and image handling. |
+| **Filtering** | Filter products dynamically by price, category, dietary tags, spicy level, or rating. |
+| **Deals CRUD** | Manage promotional combo deals (with multiple items, discounts, and images). |
+| **Product Sizes CRUD** | Manage available sizes (S, M, L, XL) with additional prices for each. |
+| **Product Toppings CRUD** | Manage customizable toppings linked to products with image upload and validation. |
+
+---
+
+## 🧱 Architecture and Dependencies
+
+The `ProductService` class collaborates with multiple repositories and services:
+
+- `ProductRepository` – Handles database operations for products.
+- `CategoryRepository` – Ensures products are linked to valid categories.
+- `DealRepository`, `DealItemRepository` – Manage combo deals and their items.
+- `ProductSizeRepository`, `ProductToppingRepository` – Manage size and topping entities.
+- `ImageUploadService` – Integrates with **Cloudinary** to upload and retrieve image URLs.
+
+All major operations are **transactional**, ensuring data consistency across multiple entities.
+
+---
+
+# 🛒 Product Management
+
+### 🧩 Create Product
+
+**Method:** `createProduct(CreateProductRequest request)`
+
+#### Workflow:
+1. Checks if the product name already exists.
+2. Validates price (cannot be negative).
+3. Uploads all product images to **Cloudinary**.
+4. Fetches and validates the assigned category.
+5. Sets all product metadata:
+   - Vegan / Vegetarian flags  
+   - Spicy level  
+   - Preparation time  
+   - Tags and allergens  
+   - Customizable option
+6. Saves the product and returns success message.
+
+---
