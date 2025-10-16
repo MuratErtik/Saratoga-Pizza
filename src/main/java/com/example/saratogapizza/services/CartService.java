@@ -8,6 +8,7 @@ import com.example.saratogapizza.repositories.UserRepository;
 
 import com.example.saratogapizza.responses.*;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,11 +31,16 @@ public class CartService {
     private final UserRepository userRepository;
 
 
+    @Transactional
     public GetCustomerCartResponse getMyActiveCart(Long userId) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new AuthException("User not found"));
 
-        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user).orElseGet(() -> createNewCart(user));
+        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user)
+                .orElseGet(() -> {
+                    log.info("No active cart found for user {}, creating new one.", user.getEmail());
+                    return createNewCart(user);
+                });
 
         GetCustomerCartResponse response = new GetCustomerCartResponse();
 
