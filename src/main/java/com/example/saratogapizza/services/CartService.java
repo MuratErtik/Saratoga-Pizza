@@ -55,23 +55,48 @@ public class CartService {
 
         response.setCartItems(cartItemResponseToCarts);
 
-        cart.setTotalItem(cart.getCartItems().size());
+        response.setTotalItem(cart.getCartItems().stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum());
+        response.setTotalSellingPrice(cart.getTotalSellingPrice());
+
 
         BigDecimal totalPrice = cart.getCartItems().stream()
-                .map(item -> item.getSellingPrice() != null ? item.getSellingPrice() : BigDecimal.ZERO)
+                .map(item -> {
+                    BigDecimal basePrice = item.getSize().getProduct().getPrice();
+                    BigDecimal extra = item.getSize().getAdditionalPrice() != null ? item.getSize().getAdditionalPrice() : BigDecimal.ZERO;
+                    BigDecimal pricePerItem = basePrice.add(extra);
+                    return pricePerItem.multiply(BigDecimal.valueOf(item.getQuantity()));
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         cart.setTotalSellingPrice(totalPrice);
 
-        response.setDiscount(cart.getDiscount() != null ? cart.getDiscount() : BigDecimal.ZERO);
 
+
+        cart.setTotalSellingPrice(totalPrice);
+
+        int totalQuantity = cart.getCartItems().stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+
+        cart.setTotalItem(totalQuantity);
+
+        response.setTotalSellingPrice(cart.getTotalSellingPrice());
+
+        response.setDiscount(cart.getDiscount() != null ? cart.getDiscount() : BigDecimal.ZERO);
 
         if (cart.getCoupon() != null) {
             response.setCoupon(mapCouponResponseToCart(cart.getCoupon()));
         }
 
+        cartRepository.save(cart);
+
+        System.out.println("****************************\nTotal price: " + cart.getTotalSellingPrice());
+        System.out.println("****************************\nTotal item: " + cart.getTotalItem());
 
         return response;
+
     }
 
 
@@ -222,7 +247,7 @@ public class CartService {
             newItem.setProduct(product);
             newItem.setSize(productSize);
             newItem.setQuantity(request.getQuantity());
-            newItem.setSellingPrice(productSize.getProduct().getPrice().multiply(productSize.getAdditionalPrice())) ;
+            newItem.setSellingPrice(productSize.getProduct().getPrice().add(productSize.getAdditionalPrice()));
             cart.getCartItems().add(newItem);
         }
 
