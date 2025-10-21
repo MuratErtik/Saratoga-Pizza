@@ -3,9 +3,13 @@ package com.example.saratogapizza.services;
 import com.example.saratogapizza.entities.*;
 import com.example.saratogapizza.exceptions.AuthException;
 
+import com.example.saratogapizza.exceptions.ProductException;
 import com.example.saratogapizza.repositories.CartRepository;
+import com.example.saratogapizza.repositories.ProductRepository;
+import com.example.saratogapizza.repositories.ProductSizeRepository;
 import com.example.saratogapizza.repositories.UserRepository;
 
+import com.example.saratogapizza.requests.AddToCartRequest;
 import com.example.saratogapizza.responses.*;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
@@ -16,10 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -29,6 +30,10 @@ public class CartService {
     private final CartRepository cartRepository;
 
     private final UserRepository userRepository;
+
+    private final ProductRepository productRepository;
+
+    private final ProductSizeRepository productSizeRepository;
 
 
     @Transactional
@@ -178,5 +183,65 @@ public class CartService {
         }
 
         return response;
+    }
+
+
+    @Transactional
+    public AddProductInCartResponse addProductInCard(Long userId, AddToCartRequest request) {
+
+        User user = userRepository.findByUserId(userId);
+
+        if (user == null) {
+            throw new AuthException("User not found");
+        }
+
+        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUser(user);
+                    newCart.setCreatedAt(LocalDateTime.now());
+                    newCart.setCheckedOut(false);
+                    return cartRepository.save(newCart);
+                });
+
+        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new ProductException("Product not found"));
+
+        ProductSize productSize = productSizeRepository.findById(request.getSizeId()).orElseThrow(() -> new ProductException("Product Size not found"));
+
+        Optional<CartItem> existItems = cart.getCartItems().stream()
+                .filter(item -> item.getProduct().equals(product) && item.getSize().equals(productSize))
+                .findFirst();
+
+        if (existItems.isPresent()) {
+            CartItem cartItem = existItems.get();
+            cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
+        }
+        else{
+            CartItem newItem = new CartItem();
+            newItem.setCart(cart);
+            newItem.setProduct(product);
+            newItem.setSize(productSize);
+            newItem.setQuantity(request.getQuantity());
+            newItem.setSellingPrice(productSize.getProduct().getPrice().multiply(productSize.getAdditionalPrice())) ;
+            cart.getCartItems().add(newItem);
+        }
+
+        BigDecimal total = cart.getCartItems().stream()
+                .map(i -> i.getSellingPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        cart.setTotalSellingPrice(total);
+        cart.setTotalItem(cart.getCartItems().size());
+        cart.setUpdatedAt(LocalDateTime.now());
+
+        cartRepository.save(cart);
+
+        AddProductInCartResponse addProductInCartResponse = new AddProductInCartResponse();
+        addProductInCartResponse.setProductName(product.getName());
+        addProductInCartResponse.setMessage("Product added successfully in Cart");
+        return addProductInCartResponse;
+
+
+
     }
 }

@@ -4,14 +4,13 @@ package com.example.saratogapizza.controllers;
 import com.example.saratogapizza.configs.JwtUtils;
 
 
+import com.example.saratogapizza.requests.AddToCartRequest;
+import com.example.saratogapizza.responses.AddProductInCartResponse;
 import com.example.saratogapizza.responses.GetCustomerCartResponse;
 import com.example.saratogapizza.services.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/customer")
@@ -32,6 +31,20 @@ public class CartController {
         Long userId = jwtUtils.getUserIdFromToken(token);
 
         return ResponseEntity.ok(cartService.getMyActiveCart(userId));
+
+    }
+
+    @PostMapping(value = "/card/add")
+    public ResponseEntity<AddProductInCartResponse> addProductInCard(
+            @RequestHeader("Authorization") String jwt,
+            @RequestBody AddToCartRequest request
+
+    ) {
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+        System.out.println("##########userId = " + userId);
+
+        return ResponseEntity.ok(cartService.addProductInCard(userId,request));
 
     }
 
