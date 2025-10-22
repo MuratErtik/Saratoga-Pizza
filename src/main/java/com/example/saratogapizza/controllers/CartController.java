@@ -62,6 +62,17 @@ public class CartController {
 
     }
 
+    @DeleteMapping(value = "/card/remove/cart/")
+    public ResponseEntity<RemoveProductInCartResponse> deleteCard(
+            @RequestHeader("Authorization") String jwt
+    ) {
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+        return ResponseEntity.ok(cartService.deleteCard(userId));
+
+    }
+
 
 }
 
@@ -69,11 +80,10 @@ public class CartController {
     /*
 
 
-do not forget to use coupon in cart also adding inventory service with rabbitMQ increase and decrease both
+do not forget to use coupon in cart
+also adding inventory service with rabbitMQ increase and decrease both
 after the complete CartController
 
- DELETE /api/cart/remove/{cartItemId}
-Sepetten ürünü kaldırır.
 DELETE /api/cart/clear
 Sepeti tamamen boşaltır.
      */
