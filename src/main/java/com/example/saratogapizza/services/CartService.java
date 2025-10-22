@@ -4,12 +4,10 @@ import com.example.saratogapizza.entities.*;
 import com.example.saratogapizza.exceptions.AuthException;
 
 import com.example.saratogapizza.exceptions.ProductException;
-import com.example.saratogapizza.repositories.CartRepository;
-import com.example.saratogapizza.repositories.ProductRepository;
-import com.example.saratogapizza.repositories.ProductSizeRepository;
-import com.example.saratogapizza.repositories.UserRepository;
+import com.example.saratogapizza.repositories.*;
 
 import com.example.saratogapizza.requests.AddToCartRequest;
+import com.example.saratogapizza.requests.CreateCouponRequest;
 import com.example.saratogapizza.responses.*;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
@@ -34,6 +32,8 @@ public class CartService {
     private final ProductRepository productRepository;
 
     private final ProductSizeRepository productSizeRepository;
+
+    private final CouponRepository couponRepository;
 
 
     @Transactional
@@ -349,4 +349,60 @@ public class CartService {
         return response;
     }
 
+    @Transactional
+    public CreateCouponResponse createCoupon(CreateCouponRequest request) {
+
+        validateCoupon(request);
+
+        Optional<Coupon> existingCoupon = couponRepository.findByCode(request.getCode());
+
+        if (existingCoupon.isPresent()) {
+            throw new ProductException("Coupon already exists");
+        }
+
+        Coupon coupon = new Coupon();
+
+        coupon.setCode(request.getCode());
+
+        coupon.setDiscountPercentage(request.getDiscountPercentage());
+
+        coupon.setValidityStartDate(request.getValidityStartDate());
+
+        coupon.setValidityEndDate(request.getValidityEndDate());
+
+        coupon.setMinOrderValue(request.getMinOrderValue());
+
+        coupon.setActive(true);
+
+        couponRepository.save(coupon);
+
+        CreateCouponResponse response = new CreateCouponResponse();
+        response.setMessage("Coupon created successfully");
+        response.setCode(coupon.getCode());
+
+        return response;
+    }
+
+    private void validateCoupon(CreateCouponRequest request) {
+
+        if (request.getCode() == null || request.getCode().isEmpty()) {
+            throw new ProductException("Coupon code cannot be empty");
+        }
+
+        if (request.getDiscountPercentage() <= 0 || request.getDiscountPercentage() > 100) {
+            throw new ProductException("Discount percentage must be between 0 and 100");
+        }
+
+        if (request.getValidityStartDate() == null || request.getValidityEndDate() == null) {
+            throw new ProductException("Coupon validity dates cannot be null");
+        }
+
+        if (request.getValidityEndDate().isBefore(request.getValidityStartDate())) {
+            throw new ProductException("End date cannot be before start date");
+        }
+
+        if (request.getMinOrderValue() <0 ) {
+            throw new ProductException("Coupon value must be greater than 0");
+        }
+    }
 }
