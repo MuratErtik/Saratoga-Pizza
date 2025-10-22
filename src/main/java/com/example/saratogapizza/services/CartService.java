@@ -267,34 +267,40 @@ public class CartService {
             throw new AuthException("User not found");
         }
 
-        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user).orElseThrow(() -> new ProductException("Cart not found"));
+        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user)
+                .orElseThrow(() -> new ProductException("Cart not found"));
 
-        CartItem cartItemToRemove = cart.getCartItems().stream().filter(
-                filter -> filter.getId().equals(cartItemId)
+        CartItem cartItemToRemove = cart.getCartItems().stream()
+                .filter(item -> item.getId().equals(cartItemId))
+                .findFirst()
+                .orElseThrow(() -> new ProductException("Cart item not found in cart"));
 
-        ).findFirst().orElseThrow(() -> new ProductException("Cart item not found in Cart"));
+        if (cartItemToRemove.getQuantity() > 1) {
+            cartItemToRemove.setQuantity(cartItemToRemove.getQuantity() - 1);
+        } else {
+            cart.getCartItems().remove(cartItemToRemove);
+        }
 
-        cart.getCartItems().remove(cartItemToRemove);
+        // cart.getCartItems().remove(cartItemToRemove);
 
-        cartRepository.save(cart);
-
-        BigDecimal totalPrice= calculateTotalPrice(cart.getCartItems());
-
+        BigDecimal totalPrice = calculateTotalPrice(cart.getCartItems());
         cart.setTotalSellingPrice(totalPrice);
 
-        cart.setTotalItem(cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum());
+        int totalItems = cart.getCartItems().stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+        cart.setTotalItem(totalItems);
 
         cart.setUpdatedAt(LocalDateTime.now());
-
         cartRepository.save(cart);
 
         RemoveProductInCartResponse response = new RemoveProductInCartResponse();
         response.setMessage("Product removed successfully from cart");
         response.setProductName(cartItemToRemove.getProduct().getName());
 
-
         return response;
     }
+
 
 
     private BigDecimal calculateTotalPrice(Set<CartItem> cartItems) {
