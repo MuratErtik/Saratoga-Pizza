@@ -60,19 +60,7 @@ public class CartService {
                 .sum());
         response.setTotalSellingPrice(cart.getTotalSellingPrice());
 
-
-        BigDecimal totalPrice = cart.getCartItems().stream()
-                .map(item -> {
-                    BigDecimal basePrice = item.getSize().getProduct().getPrice();
-                    BigDecimal extra = item.getSize().getAdditionalPrice() != null ? item.getSize().getAdditionalPrice() : BigDecimal.ZERO;
-                    BigDecimal pricePerItem = basePrice.add(extra);
-                    return pricePerItem.multiply(BigDecimal.valueOf(item.getQuantity()));
-                })
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        cart.setTotalSellingPrice(totalPrice);
-
-
+        BigDecimal totalPrice = calculateTotalPrice(cart.getCartItems());
 
         cart.setTotalSellingPrice(totalPrice);
 
@@ -267,6 +255,59 @@ public class CartService {
         return addProductInCartResponse;
 
 
+
+    }
+
+    @Transactional
+    public RemoveProductInCartResponse deleteProductInCard(Long userId, Long cartItemId) {
+
+        User user = userRepository.findByUserId(userId);
+
+        if (user == null) {
+            throw new AuthException("User not found");
+        }
+
+        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user).orElseThrow(() -> new ProductException("Cart not found"));
+
+        CartItem cartItemToRemove = cart.getCartItems().stream().filter(
+                filter -> filter.getId().equals(cartItemId)
+
+        ).findFirst().orElseThrow(() -> new ProductException("Cart item not found in Cart"));
+
+        cart.getCartItems().remove(cartItemToRemove);
+
+        cartRepository.save(cart);
+
+        BigDecimal totalPrice= calculateTotalPrice(cart.getCartItems());
+
+        cart.setTotalSellingPrice(totalPrice);
+
+        cart.setTotalItem(cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum());
+
+        cart.setUpdatedAt(LocalDateTime.now());
+
+        cartRepository.save(cart);
+
+        RemoveProductInCartResponse response = new RemoveProductInCartResponse();
+        response.setMessage("Product removed successfully from cart");
+        response.setProductName(cartItemToRemove.getProduct().getName());
+
+
+        return response;
+    }
+
+
+    private BigDecimal calculateTotalPrice(Set<CartItem> cartItems) {
+
+        BigDecimal totalPrice = cartItems.stream()
+                .map(item -> {
+                    BigDecimal basePrice = item.getSize().getProduct().getPrice();
+                    BigDecimal extra = item.getSize().getAdditionalPrice() != null ? item.getSize().getAdditionalPrice() : BigDecimal.ZERO;
+                    return basePrice.add(extra).multiply(BigDecimal.valueOf(item.getQuantity()));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return totalPrice;
 
     }
 }
