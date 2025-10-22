@@ -316,4 +316,37 @@ public class CartService {
         return totalPrice;
 
     }
+
+    @Transactional
+    public RemoveProductInCartResponse deleteCard(Long userId) {
+        User user = userRepository.findByUserId(userId);
+
+        if (user == null) {
+            throw new AuthException("User not found");
+        }
+
+        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user)
+                .orElseThrow(() -> new ProductException("Cart not found"));
+
+        if (cart.isCheckedOut()) {
+            throw new ProductException("Cannot clear a checked-out cart");
+        }
+
+
+        cart.getCartItems().clear();
+
+        cart.setCoupon(null);
+        cart.setDiscount(BigDecimal.ZERO);
+        cart.setTotalSellingPrice(BigDecimal.ZERO);
+        cart.setTotalItem(0);
+        cart.setUpdatedAt(LocalDateTime.now());
+
+        cartRepository.save(cart);
+
+        RemoveProductInCartResponse response = new RemoveProductInCartResponse();
+        response.setMessage("Cart cleared successfully");
+
+        return response;
+    }
+
 }
