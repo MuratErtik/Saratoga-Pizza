@@ -7,6 +7,7 @@ import com.example.saratogapizza.configs.JwtUtils;
 import com.example.saratogapizza.requests.AddToCartRequest;
 import com.example.saratogapizza.responses.AddProductInCartResponse;
 import com.example.saratogapizza.responses.GetCustomerCartResponse;
+import com.example.saratogapizza.responses.RemoveProductInCartResponse;
 import com.example.saratogapizza.services.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -48,20 +49,28 @@ public class CartController {
 
     }
 
+    @DeleteMapping(value = "/card/remove/{cartItemId}")
+    public ResponseEntity<RemoveProductInCartResponse> deleteProductInCard(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Long  cartItemId
+
+    ) {
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+        return ResponseEntity.ok(cartService.deleteProductInCard(userId,cartItemId));
+
+    }
+
 
 }
 
 
     /*
-GET /api/cart/me
-Kullanıcının aktif sepetini getirir.
-Eğer yoksa boş döner veya yeni oluşturur.
 
-POST /api/cart/add
-Sepete ürün ekler (varsa miktar artırır).
 
- PUT /api/cart/update/{cartItemId}
-Sepetteki ürün miktarını değiştirir.
+do not forget to use coupon in cart also adding inventory service with rabbitMQ increase and decrease both
+after the complete CartController
 
  DELETE /api/cart/remove/{cartItemId}
 Sepetten ürünü kaldırır.
