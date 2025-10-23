@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -404,5 +405,49 @@ public class CartService {
         if (request.getMinOrderValue() <0 ) {
             throw new ProductException("Coupon value must be greater than 0");
         }
+    }
+
+    public List<GetCouponsResponse> getCoupons() {
+
+        return couponRepository.findAll().stream().map(this::mapToGetCouponsResponse).collect(Collectors.toList());
+    }
+
+    private GetCouponsResponse mapToGetCouponsResponse(Coupon coupon) {
+        GetCouponsResponse response = new GetCouponsResponse();
+        response.setId(coupon.getId());
+        response.setCode(coupon.getCode());
+        response.setDiscountPercentage(coupon.getDiscountPercentage());
+        response.setValidityStartDate(coupon.getValidityStartDate());
+        response.setValidityEndDate(coupon.getValidityEndDate());
+        response.setMinOrderValue(coupon.getMinOrderValue());
+        response.setActive(coupon.isActive());
+        Set<UserToUseThisCouponResponse> users = new HashSet<>();
+        coupon.getUsedByUsers().stream().map(this::mapToUserToUseThisCouponResponse).forEach(users::add);
+        response.setUsedByUsers(users);
+        return response;
+    }
+
+    private UserToUseThisCouponResponse mapToUserToUseThisCouponResponse(User user) {
+        UserToUseThisCouponResponse response = new UserToUseThisCouponResponse();
+        response.setFullName(user.getName()+" "+user.getLastname());
+        //add order details later!
+        return response;
+
+    }
+
+
+    @Transactional
+    public ChangeCouponActivityResponse changeActivityOfCoupons(Long couponId) {
+
+        Coupon coupon = couponRepository.findById(couponId).orElseThrow(() -> new ProductException("Coupon does not exist with id: " + couponId));
+
+        coupon.setActive(!coupon.isActive());
+
+        couponRepository.save(coupon);
+
+        ChangeCouponActivityResponse response = new ChangeCouponActivityResponse();
+        response.setMessage("Coupon activated has been changed");
+        return response;
+
     }
 }
