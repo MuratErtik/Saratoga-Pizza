@@ -80,10 +80,9 @@ public class CartController {
     /*
 
 
-do not forget to use coupon in cart
+
 also adding inventory service with rabbitMQ increase and decrease both
 after the complete CartController
 
-DELETE /api/cart/clear
-Sepeti tamamen boşaltır.
+
      */
