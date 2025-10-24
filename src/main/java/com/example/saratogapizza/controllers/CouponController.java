@@ -82,10 +82,21 @@ public class CouponController {
 
     }
 
+    @PatchMapping(value = "customer/coupon/apply")
+    public ResponseEntity<ApplyCouponResponse> applyCouponToCart(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam String couponCode){
+
+        String token = jwt.substring(7).trim();
+        Long userId = jwtUtils.getUserIdFromToken(token);
+
+        return ResponseEntity.ok(cartService.applyCouponToCart(userId, couponCode));
+    }
+
 
 
 
 
 
 }
-//do not forget to use coupon in cart -> ,Use,Remove,Delete,,,
+//do not forget to use coupon in cart -> ,Use,Remove,,,,
