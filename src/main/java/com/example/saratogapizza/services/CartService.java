@@ -450,4 +450,49 @@ public class CartService {
         return response;
 
     }
+
+    @Transactional
+    public UpdateCouponResponse updateCoupon(Long couponId, CreateCouponRequest request) {
+
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new ProductException("Coupon not found"));
+
+        if (request.getValidityStartDate() != null && request.getValidityEndDate() != null) {
+            if (request.getValidityEndDate().isBefore(request.getValidityStartDate())) {
+                throw new ProductException("End date cannot be before start date");
+            }
+        }
+
+
+        if (request.getDiscountPercentage() < 0 || request.getDiscountPercentage() > 100) {
+            throw new ProductException("Discount percentage must be between 0 and 100");
+        }
+
+        coupon.setDiscountPercentage(request.getDiscountPercentage());
+
+
+        if (request.getCode() != null && !request.getCode().isBlank()) {
+            coupon.setCode(request.getCode());
+        }
+
+        if (request.getValidityStartDate() != null) {
+            coupon.setValidityStartDate(request.getValidityStartDate());
+        }
+
+        if (request.getValidityEndDate() != null) {
+            coupon.setValidityEndDate(request.getValidityEndDate());
+        }
+
+
+        coupon.setMinOrderValue(request.getMinOrderValue());
+
+
+        couponRepository.save(coupon);
+
+        UpdateCouponResponse response = new UpdateCouponResponse();
+        response.setMessage("Coupon updated successfully");
+
+        return response;
+    }
+
 }
