@@ -16,9 +16,9 @@ public class CartItemTopping {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String toppingName; // kullanıcı seçtiği topping
+    private String toppingName; // topping name which added in basket by user
 
-    private BigDecimal price;   // ekstra fiyat
+    private BigDecimal price;   // extra price
 
     @ManyToOne
     private CartItem cartItem;
