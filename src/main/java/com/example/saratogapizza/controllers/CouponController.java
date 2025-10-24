@@ -70,9 +70,22 @@ public class CouponController {
 
     }
 
+    //make control of date if date is before the starting time or after the end time make coupon activity false
+    @PatchMapping(value = "/admin/coupon/delete/{couponId}")
+    public ResponseEntity<ChangeCouponActivityResponse> unactiveCoupon(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Long couponId
+    ) {
+        String token = jwt.substring(7).trim();
+
+        return ResponseEntity.ok(cartService.unactiveCoupon(couponId));
+
+    }
+
+
 
 
 
 
 }
-//do not forget to use coupon in cart -> ,Use,Remove,Delete,Update,,
+//do not forget to use coupon in cart -> ,Use,Remove,Delete,,,
