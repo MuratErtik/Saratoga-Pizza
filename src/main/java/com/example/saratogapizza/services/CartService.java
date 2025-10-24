@@ -13,6 +13,7 @@ import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -514,6 +515,24 @@ public class CartService {
         response.setMessage("Coupon unactivated successfully");
         return response;
 
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    public void checkCouponValidityDates() {
+
+        LocalDate today = LocalDate.now();
+
+        List<Coupon> coupons = couponRepository.findAll();
+
+         coupons.stream()
+                .filter(Coupon::isActive)
+                .filter(coupon -> today.isBefore(coupon.getValidityStartDate()) ||
+                                          today.isAfter(coupon.getValidityEndDate()))
+                .forEach(coupon -> coupon.setActive(false));
+
+        couponRepository.saveAll(coupons);
+
+        System.out.println("Check coupons validity date succeeded::: "+LocalDate.now());
     }
 
 }
