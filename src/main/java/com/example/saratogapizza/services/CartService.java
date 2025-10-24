@@ -295,14 +295,22 @@ public class CartService {
 
         // cart.getCartItems().remove(cartItemToRemove);
 
-        BigDecimal totalPrice = calculateTotalPrice(cart.getCartItems());
-        cart.setTotalSellingPrice(totalPrice);
+        BigDecimal total = cart.getCartItems().stream()
+                .map(i -> i.getSellingPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        int totalItems = cart.getCartItems().stream()
-                .mapToInt(CartItem::getQuantity)
-                .sum();
-        cart.setTotalItem(totalItems);
+        if (cart.getCoupon() != null) {
+            BigDecimal discountAmount = total
+                    .multiply(BigDecimal.valueOf(cart.getCoupon().getDiscountPercentage()))
+                    .divide(BigDecimal.valueOf(100));
+            cart.setDiscount(discountAmount);
+            total = total.subtract(discountAmount);
+        } else {
+            cart.setDiscount(BigDecimal.ZERO);
+        }
 
+        cart.setTotalSellingPrice(total);
+        cart.setTotalItem(cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum());
         cart.setUpdatedAt(LocalDateTime.now());
         cartRepository.save(cart);
 
