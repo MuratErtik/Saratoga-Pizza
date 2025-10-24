@@ -245,11 +245,21 @@ public class CartService {
                 .map(i -> i.getSellingPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        if (cart.getCoupon() != null) {
+            BigDecimal discountAmount = total.multiply(BigDecimal.valueOf(cart.getCoupon().getDiscountPercentage()))
+                    .divide(BigDecimal.valueOf(100));
+            cart.setDiscount(discountAmount);
+            total = total.subtract(discountAmount);
+        } else {
+            cart.setDiscount(BigDecimal.ZERO);
+        }
+
         cart.setTotalSellingPrice(total);
-        cart.setTotalItem(cart.getCartItems().size());
+        cart.setTotalItem(cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum());
         cart.setUpdatedAt(LocalDateTime.now());
 
         cartRepository.save(cart);
+
 
         AddProductInCartResponse addProductInCartResponse = new AddProductInCartResponse();
         addProductInCartResponse.setProductName(product.getName());
@@ -535,4 +545,60 @@ public class CartService {
         System.out.println("Check coupons validity date succeeded::: "+LocalDate.now());
     }
 
+    public ApplyCouponResponse applyCouponToCart(Long userId, String couponCode) {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ProductException("User not found"));
+
+        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user).orElseThrow(() -> new ProductException("Cart not found"));
+
+        if (cart.getCartItems().isEmpty()) {
+            throw new ProductException("Cannot apply coupon to an empty cart");
+        }
+
+        Coupon coupon = couponRepository.findByCode(couponCode).orElseThrow(() -> new ProductException("Coupon not found"));
+
+        if (!coupon.isActive()){
+            throw new ProductException("Coupon is not active");
+        }
+
+        if (cart.getTotalSellingPrice().doubleValue()<coupon.getMinOrderValue()){
+            throw new ProductException("Selling price is lower than order value");
+        }
+
+        Set<Coupon> usedCouponsByUser = user.getUsedCoupons();
+
+        if (usedCouponsByUser != null) {
+            if (usedCouponsByUser.contains(coupon)) {
+                throw new ProductException("Coupon already used");
+            }
+        }
+
+
+        BigDecimal discountAmount = cart.getTotalSellingPrice()
+                .multiply(BigDecimal.valueOf(coupon.getDiscountPercentage()))
+                .divide(BigDecimal.valueOf(100));
+
+        cart.setDiscount(discountAmount);
+        cart.setCoupon(coupon);
+        cart.setTotalSellingPrice(cart.getTotalSellingPrice().subtract(discountAmount));
+
+        if (usedCouponsByUser == null) {
+            usedCouponsByUser = new HashSet<>();
+            usedCouponsByUser.add(coupon);
+        }
+        usedCouponsByUser.add(coupon);
+
+        coupon.getUsedByUsers().add(user);
+
+        cart.setUpdatedAt(LocalDateTime.now());
+
+        cartRepository.save(cart);
+        couponRepository.save(coupon);
+
+        ApplyCouponResponse response = new ApplyCouponResponse();
+        response.setMessage("Coupon applied successfully");
+
+        return response;
+
+    }
 }
