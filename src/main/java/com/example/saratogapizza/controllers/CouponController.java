@@ -3,10 +3,7 @@ package com.example.saratogapizza.controllers;
 import com.example.saratogapizza.configs.JwtUtils;
 import com.example.saratogapizza.requests.AddToCartRequest;
 import com.example.saratogapizza.requests.CreateCouponRequest;
-import com.example.saratogapizza.responses.AddProductInCartResponse;
-import com.example.saratogapizza.responses.ChangeCouponActivityResponse;
-import com.example.saratogapizza.responses.CreateCouponResponse;
-import com.example.saratogapizza.responses.GetCouponsResponse;
+import com.example.saratogapizza.responses.*;
 import com.example.saratogapizza.services.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,9 +56,23 @@ public class CouponController {
 
     }
 
+    @PatchMapping(value = "/admin/coupon/update/{couponId}")
+    public ResponseEntity<UpdateCouponResponse> updateCoupon(
+            @RequestHeader("Authorization") String jwt,
+            @RequestBody CreateCouponRequest request,
+            @PathVariable Long couponId
+
+    ) {
+        String token = jwt.substring(7).trim();
+//        Long userId = jwtUtils.getUserIdFromToken(token);
+
+        return ResponseEntity.ok(cartService.updateCoupon(couponId,request));
+
+    }
+
 
 
 
 
 }
-//do not forget to use coupon in cart -> ,Use,Remove,Delete,Update,,Make Active or Unactive
+//do not forget to use coupon in cart -> ,Use,Remove,Delete,Update,,
