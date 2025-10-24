@@ -495,4 +495,25 @@ public class CartService {
         return response;
     }
 
+
+    public ChangeCouponActivityResponse unactiveCoupon(Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new ProductException("Coupon not found with id: " + couponId));
+
+        LocalDate today = LocalDate.now();
+
+        if (today.isBefore(coupon.getValidityStartDate()) || today.isAfter(coupon.getValidityEndDate())) {
+            coupon.setActive(false);
+        } else {
+            throw new ProductException("Coupon is still within valid date range, cannot deactivate based on date!");
+        }
+
+        couponRepository.save(coupon);
+
+        ChangeCouponActivityResponse response = new ChangeCouponActivityResponse();
+        response.setMessage("Coupon unactivated successfully");
+        return response;
+
+    }
+
 }
