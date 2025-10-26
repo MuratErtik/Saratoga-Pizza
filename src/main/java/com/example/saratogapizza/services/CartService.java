@@ -339,6 +339,7 @@ public class CartService {
 
     @Transactional
     public RemoveProductInCartResponse deleteCard(Long userId) {
+
         User user = userRepository.findByUserId(userId);
 
         if (user == null) {
@@ -352,8 +353,17 @@ public class CartService {
             throw new ProductException("Cannot clear a checked-out cart");
         }
 
-
         cart.getCartItems().clear();
+
+        Coupon coupon = cart.getCoupon();
+        if (coupon != null) {
+
+            user.getUsedCoupons().remove(coupon);
+            userRepository.save(user);
+
+            coupon.getUsedByUsers().remove(user);
+            couponRepository.save(coupon);
+        }
 
         cart.setCoupon(null);
         cart.setDiscount(BigDecimal.ZERO);
@@ -364,10 +374,11 @@ public class CartService {
         cartRepository.save(cart);
 
         RemoveProductInCartResponse response = new RemoveProductInCartResponse();
-        response.setMessage("Cart cleared successfully");
+        response.setMessage("Product removed successfully from cart");
 
         return response;
     }
+
 
     @Transactional
     public CreateCouponResponse createCoupon(CreateCouponRequest request) {
