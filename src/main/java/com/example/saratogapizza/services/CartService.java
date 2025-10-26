@@ -274,10 +274,7 @@ public class CartService {
     public RemoveProductInCartResponse deleteProductInCard(Long userId, Long cartItemId) {
 
         User user = userRepository.findByUserId(userId);
-
-        if (user == null) {
-            throw new AuthException("User not found");
-        }
+        if (user == null) throw new AuthException("User not found");
 
         Cart cart = cartRepository.findByUserAndCheckedOutFalse(user)
                 .orElseThrow(() -> new ProductException("Cart not found"));
@@ -293,18 +290,29 @@ public class CartService {
             cart.getCartItems().remove(cartItemToRemove);
         }
 
-        // cart.getCartItems().remove(cartItemToRemove);
-
         BigDecimal total = cart.getCartItems().stream()
                 .map(i -> i.getSellingPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (cart.getCoupon() != null) {
-            BigDecimal discountAmount = total
-                    .multiply(BigDecimal.valueOf(cart.getCoupon().getDiscountPercentage()))
-                    .divide(BigDecimal.valueOf(100));
-            cart.setDiscount(discountAmount);
-            total = total.subtract(discountAmount);
+        Coupon coupon = cart.getCoupon();
+        if (coupon != null) {
+            BigDecimal minValue = BigDecimal.valueOf(coupon.getMinOrderValue());
+
+            if (total.compareTo(minValue) < 0) {
+
+                user.getUsedCoupons().remove(coupon);
+                coupon.getUsedByUsers().remove(user);
+                cart.setCoupon(null);
+                cart.setDiscount(BigDecimal.ZERO);
+
+            } else {
+                BigDecimal discountAmount = total
+                        .multiply(BigDecimal.valueOf(coupon.getDiscountPercentage()))
+                        .divide(BigDecimal.valueOf(100));
+
+                cart.setDiscount(discountAmount);
+                total = total.subtract(discountAmount);
+            }
         } else {
             cart.setDiscount(BigDecimal.ZERO);
         }
@@ -312,7 +320,10 @@ public class CartService {
         cart.setTotalSellingPrice(total);
         cart.setTotalItem(cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum());
         cart.setUpdatedAt(LocalDateTime.now());
+
         cartRepository.save(cart);
+        userRepository.save(user);
+        if (coupon != null) couponRepository.save(coupon);
 
         RemoveProductInCartResponse response = new RemoveProductInCartResponse();
         response.setMessage("Product removed successfully from cart");
