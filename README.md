@@ -339,3 +339,53 @@ Prevents underflow (cannot go below 0).
 ### ✅ Confirm Order Stock Update  
 **Method:** `confirmOrderStockUpdate(Long productSizeId, int quantity)`  
 
+
+---
+
+
+# 🛒 Cart & Coupon Service 
+
+The `CartService` is a critical service in the Saratoga-Pizza application, connecting user carts, coupons, and inventory management. It handles fundamental e-commerce functions such as adding/removing items, calculating prices, and applying discounts.
+
+## 🚀 Core Features
+
+- **Full Cart Management:** Creating, viewing, and clearing user-specific active carts.
+- **Add/Remove Products:** Adding products to the cart (incrementing quantity if it exists) or removing products from the cart (decreasing quantity or deleting entirely).
+- **Inventory Integration:** Asynchronous communication with the inventory service to guarantee stock status.
+- **Coupon Management (Admin):** Enables administrators to create, update, list, and manually activate/deactivate coupons.
+- **Coupon Application (User):** Allows users to apply and remove coupon codes from their carts.
+- **Automatic Pricing:** Dynamically calculates the cart total and item count, including coupon discounts.
+- **Scheduled Tasks:** A daily task that automatically deactivates expired coupons.
+
+## ⚙️ Core Responsibilities
+
+### Cart Management
+- **`getMyActiveCart`**: Retrieves the user's active cart. If no cart exists, it automatically creates a new, empty cart for the user.
+- **`addProductInCard`**: Adds a new product and size to the cart. Before adding, it sends a **"RESERVE"** message to the **Inventory Service** via RabbitMQ to get stock confirmation. If stock is unavailable, the operation is canceled.
+- **`deleteProductInCard`**: Removes a product (or one unit of it) from the cart. When successfully removed, it sends a **"RELEASE"** message via RabbitMQ to return the stock count.
+- **`deleteCard`**: Clears *all* items from the cart and sends a stock release (**RELEASE**) message for each one.
+
+### Coupon Operations
+- **`applyCouponToCart`**: Applies a coupon code to the cart. It performs the following checks:
+    1.  Is another coupon already in the cart?
+    2.  Is the coupon code valid and **active**?
+    3.  Does the cart total meet the coupon's **minimum order value**?
+    4.  Has the user already used this coupon?
+- **`removeCouponToCart`**: Removes the applied coupon from the cart, reverts the discount, and removes it from the user's "used" list (so it can be used again).
+- **`createCoupon / updateCoupon`**: Allows admins to create new coupons or edit existing ones.
+
+## 📦 Asynchronous Operations (RabbitMQ)
+
+This service does not communicate directly with the `InventoryService` for inventory consistency; instead, it uses **RabbitMQ**:
+
+- **`RESERVE` (Reservation):** When a user adds a product to the cart, it sends a message to the `InventoryService` to reserve stock for that product. If there is not enough stock in inventory, the `InventoryService` returns an error, and the product is not added to the cart.
+- **`RELEASE` (Return):** When a user removes a product from the cart (or empties the cart entirely), it sends a message to release the reserved stock back.
+
+## ⏰ Scheduled Tasks
+
+- **`checkCouponValidityDates`**: Thanks to the Spring `@Scheduled(cron = "0 0 0 * * *")` annotation, it runs **every day at midnight**. It checks all coupons in the database; it automatically sets coupons whose start date has not yet arrived or whose expiration date has passed to `active = false` (disabled).
+
+
+
+---
+
