@@ -581,6 +581,8 @@ public class CartService {
 
         Cart cart = cartRepository.findByUserAndCheckedOutFalse(user).orElseThrow(() -> new ProductException("Cart not found"));
 
+        if (cart.getCoupon()!=null) throw new ProductException("Cart already has coupon");
+
         if (cart.getCartItems().isEmpty()) {
             throw new ProductException("Cannot apply coupon to an empty cart");
         }
