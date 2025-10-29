@@ -631,4 +631,55 @@ public class CartService {
         return response;
 
     }
+
+    @Transactional
+    public RemoveCouponResponse removeCouponToCart(Long userId, Long couponId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ProductException("User not found"));
+
+        Cart cart = cartRepository.findByUserAndCheckedOutFalse(user)
+                .orElseThrow(() -> new ProductException("Cart not found"));
+
+        Coupon couponFromPath = couponRepository.findById(couponId)
+                .orElseThrow(() -> new ProductException("Coupon not found"));
+
+        Coupon couponFromCart = cart.getCoupon();
+
+        if (couponFromCart == null) {
+            throw new ProductException("No coupon found in cart");
+        }
+
+        if (!couponFromCart.getId().equals(couponFromPath.getId())) {
+            throw new ProductException("Coupon doesn't match with the one in cart");
+        }
+
+        user.getUsedCoupons().remove(couponFromCart);
+        couponFromCart.getUsedByUsers().remove(user);
+
+        userRepository.saveAndFlush(user);
+        couponRepository.saveAndFlush(couponFromCart);
+
+        //null must be set after the cleaning relations of database!
+        cart.setCoupon(null);
+        cart.setDiscount(BigDecimal.ZERO);
+
+        BigDecimal total = calculateTotalPrice(cart.getCartItems());
+        int totalItems = cart.getCartItems().stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+
+        cart.setTotalSellingPrice(total);
+        cart.setTotalItem(totalItems);
+        cart.setUpdatedAt(LocalDateTime.now());
+
+        cartRepository.save(cart);
+
+        RemoveCouponResponse response = new RemoveCouponResponse();
+        response.setMessage("Coupon removed successfully from cart");
+        return response;
+    }
+
+
+
 }
