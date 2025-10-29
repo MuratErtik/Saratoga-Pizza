@@ -22,23 +22,39 @@ services:
     volumes:
       - redis_data:/data
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # RabbitMQ default port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER:
+      RABBITMQ_DEFAULT_PASS:
+
   pizza-app:
     build: .
     volumes:
-      - ./src:/app/src   #for hot-reload on the dev process
+      - ./src:/app/src
       - ./target:/app/target
     container_name: pizza-app
     depends_on:
       - postgres-db
       - redis
+      - rabbitmq
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/dbname
-      SPRING_DATASOURCE_USERNAME: muratertik
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/saratogapizza
+      SPRING_DATASOURCE_USERNAME:
       SPRING_DATASOURCE_PASSWORD:
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME:
+      SPRING_RABBITMQ_PASSWORD:
 
 volumes:
   postgres_data:
