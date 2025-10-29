@@ -1,5 +1,6 @@
 package com.example.saratogapizza.services;
 
+import com.example.saratogapizza.configs.RabbitConfig;
 import com.example.saratogapizza.entities.*;
 import com.example.saratogapizza.exceptions.AuthException;
 
@@ -8,11 +9,14 @@ import com.example.saratogapizza.repositories.*;
 
 import com.example.saratogapizza.requests.AddToCartRequest;
 import com.example.saratogapizza.requests.CreateCouponRequest;
+import com.example.saratogapizza.requests.InventoryMessageRequest;
 import com.example.saratogapizza.responses.*;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +40,10 @@ public class CartService {
     private final ProductSizeRepository productSizeRepository;
 
     private final CouponRepository couponRepository;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
 
 
     @Transactional
@@ -258,6 +266,21 @@ public class CartService {
         cart.setTotalItem(cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum());
         cart.setUpdatedAt(LocalDateTime.now());
 
+
+        InventoryMessageRequest requestMessage = new InventoryMessageRequest(
+                request.getSizeId(),
+                request.getQuantity(),
+                "RESERVE"
+        );
+
+        InventoryMessageResponse inventoryResponse = (InventoryMessageResponse)
+                rabbitTemplate.convertSendAndReceive(RabbitConfig.INVENTORY_QUEUE, requestMessage);
+
+        if (inventoryResponse == null || !inventoryResponse.isSuccess()) {
+            throw new ProductException("Cannot reserve stock: " +
+                    (inventoryResponse != null ? inventoryResponse.getMessage() : "Unknown error"));
+        }
+
         cartRepository.save(cart);
 
 
@@ -325,6 +348,15 @@ public class CartService {
         userRepository.save(user);
         if (coupon != null) couponRepository.save(coupon);
 
+        InventoryMessageRequest releaseMessage = new InventoryMessageRequest(
+                cartItemToRemove.getSize().getId(),
+                1,
+                "RELEASE"
+        );
+
+        rabbitTemplate.convertSendAndReceive(RabbitConfig.INVENTORY_QUEUE, releaseMessage);
+
+
         RemoveProductInCartResponse response = new RemoveProductInCartResponse();
         response.setMessage("Product removed successfully from cart");
         response.setProductName(cartItemToRemove.getProduct().getName());
@@ -364,6 +396,18 @@ public class CartService {
             throw new ProductException("Cannot clear a checked-out cart");
         }
 
+        for (CartItem item : cart.getCartItems()) {
+            InventoryMessageRequest message = new InventoryMessageRequest(
+                    item.getSize().getId(),
+                    item.getQuantity(),
+                    "RELEASE"
+            );
+
+            rabbitTemplate.convertAndSend(RabbitConfig.INVENTORY_QUEUE, message);
+            System.out.println("Sent release message for sizeId=" + item.getSize().getId());
+        }
+
+
         cart.getCartItems().clear();
 
         Coupon coupon = cart.getCoupon();
@@ -383,6 +427,7 @@ public class CartService {
         cart.setUpdatedAt(LocalDateTime.now());
 
         cartRepository.save(cart);
+
 
         RemoveProductInCartResponse response = new RemoveProductInCartResponse();
         response.setMessage("Product removed successfully from cart");
