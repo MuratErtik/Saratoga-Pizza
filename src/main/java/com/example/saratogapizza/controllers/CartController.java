@@ -23,7 +23,7 @@ public class CartController {
     private final JwtUtils jwtUtils;
 
 
-    @GetMapping(value = "/card/me")
+    @GetMapping(value = "/cart/me")
     public ResponseEntity<GetCustomerCartResponse> getMyCard(
             @RequestHeader("Authorization") String jwt
 
@@ -35,7 +35,7 @@ public class CartController {
 
     }
 
-    @PostMapping(value = "/card/add")
+    @PostMapping(value = "/cart/add")
     public ResponseEntity<AddProductInCartResponse> addProductInCard(
             @RequestHeader("Authorization") String jwt,
             @RequestBody AddToCartRequest request
@@ -49,7 +49,7 @@ public class CartController {
 
     }
 
-    @DeleteMapping(value = "/card/remove/{cartItemId}")
+    @DeleteMapping(value = "/cart/remove/{cartItemId}")
     public ResponseEntity<RemoveProductInCartResponse> deleteProductInCard(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Long  cartItemId
@@ -62,7 +62,7 @@ public class CartController {
 
     }
 
-    @DeleteMapping(value = "/card/remove/cart/")
+    @DeleteMapping(value = "/cart/remove/cart/")
     public ResponseEntity<RemoveProductInCartResponse> deleteCard(
             @RequestHeader("Authorization") String jwt
     ) {
