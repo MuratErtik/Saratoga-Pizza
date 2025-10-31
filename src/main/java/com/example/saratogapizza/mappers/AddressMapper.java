@@ -8,6 +8,7 @@ public class AddressMapper {
     public static  GetCustomerAddressesResponse mapToAddressResponse(Address address){
 
         GetCustomerAddressesResponse response = new GetCustomerAddressesResponse();
+        response.setId(address.getAddressId());
         response.setStreet(address.getStreet());
         response.setCity(address.getCity());
         response.setDistrict(address.getDistrict());
