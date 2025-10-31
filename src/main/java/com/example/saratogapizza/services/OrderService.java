@@ -1,5 +1,6 @@
 package com.example.saratogapizza.services;
 
+import com.example.saratogapizza.configs.RabbitConfig;
 import com.example.saratogapizza.domains.OrderStatus;
 import com.example.saratogapizza.domains.PaymentDetail;
 import com.example.saratogapizza.domains.PaymentStatus;
@@ -22,6 +23,8 @@ import com.example.saratogapizza.responses.GetCustomerCartResponse;
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -44,6 +47,9 @@ public class OrderService {
     private final AddressRepository addressRepository;
 
     private final CustomerService customerService;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
 
 
@@ -70,16 +76,11 @@ public class OrderService {
         cart.setCheckedOut(true);
         cartRepository.save(cart);
 
-        Cart newCart = new Cart();
-
-        newCart.setUser(user);
-        newCart.setCreatedAt(LocalDateTime.now());
-        newCart.setCheckedOut(false);
-        newCart.setTotalSellingPrice(BigDecimal.ZERO);
-        newCart.setTotalItem(0);
-        newCart.setDiscount(BigDecimal.ZERO);
-        newCart.setUpdatedAt(LocalDateTime.now());
-        cartRepository.save(newCart);
+//        rabbitTemplate.convertAndSend(
+//                RabbitConfig.EXCHANGE,
+//                RabbitConfig.ORDER_CREATED_ROUTING_KEY,
+//                userId
+//        );
 
 
         order.setOrderStatus(OrderStatus.PENDING);
