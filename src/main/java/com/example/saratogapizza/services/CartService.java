@@ -140,7 +140,7 @@ public class CartService {
     }
 
 
-    private CouponResponseToCart mapCouponResponseToCart(Coupon coupon) {
+    public CouponResponseToCart mapCouponResponseToCart(Coupon coupon) {
 
         CouponResponseToCart couponResponseToCart = new CouponResponseToCart();
         couponResponseToCart.setId(coupon.getId());
@@ -151,7 +151,7 @@ public class CartService {
         return couponResponseToCart;
     }
 
-    private CartItemResponseToCart mapCartItemToResponse(CartItem cartItem) {
+    public CartItemResponseToCart mapCartItemToResponse(CartItem cartItem) {
 
         CartItemResponseToCart response = new CartItemResponseToCart();
         response.setId(cartItem.getId());
