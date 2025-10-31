@@ -55,6 +55,7 @@ public class OrderService {
 
         Cart cart = cartRepository.findByUserAndCheckedOutFalse(user).orElseThrow(() -> new AuthException("Cart not found"));
 
+        if (cart.getCartItems().isEmpty()) throw new OrderException("Cart is empty so you can not create order");
 
         Order order = new Order();
 
@@ -79,9 +80,6 @@ public class OrderService {
         newCart.setDiscount(BigDecimal.ZERO);
         newCart.setUpdatedAt(LocalDateTime.now());
         cartRepository.save(newCart);
-
-
-
 
 
         order.setOrderStatus(OrderStatus.PENDING);
