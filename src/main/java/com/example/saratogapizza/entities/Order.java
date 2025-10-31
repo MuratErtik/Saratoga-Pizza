@@ -68,7 +68,7 @@ public class Order {
 
     private String trackingCode;
 
-    private LocalDateTime paymentDate;
+//    private LocalDateTime paymentDate;
 
 
 
