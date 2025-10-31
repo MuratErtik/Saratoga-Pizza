@@ -17,9 +17,7 @@ import com.example.saratogapizza.repositories.CartRepository;
 import com.example.saratogapizza.repositories.OrderRepository;
 import com.example.saratogapizza.repositories.UserRepository;
 import com.example.saratogapizza.requests.CreateOrderRequest;
-import com.example.saratogapizza.responses.CreateOrderResponse;
-import com.example.saratogapizza.responses.GetCustomerAddressesResponse;
-import com.example.saratogapizza.responses.GetCustomerCartResponse;
+import com.example.saratogapizza.responses.*;
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +27,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -109,9 +110,29 @@ public class OrderService {
 
         createOrderResponse.setGetCustomerAddresses(getCustomerAddressesResponse.get());
 
-        GetCustomerCartResponse response = cartService.getMyActiveCart(userId);
 
-        createOrderResponse.setCart(response);
+
+//        GetCustomerCartResponse response = cartService.getMyActiveCart(userId);
+
+        GetCustomerCartResponse getCustomerCartResponse = new GetCustomerCartResponse();
+
+        CouponResponseToCart couponResponseToCart = cartService.mapCouponResponseToCart(cart.getCoupon());
+        getCustomerCartResponse.setCoupon(couponResponseToCart);
+
+        getCustomerCartResponse.setDiscount(cart.getDiscount());
+
+        getCustomerCartResponse.setTotalItem(cart.getTotalItem()); // if i am wrong i ll fix later
+
+        getCustomerCartResponse.setTotalSellingPrice(cart.getTotalSellingPrice());
+
+
+        Set<CartItemResponseToCart> cartItemResponseToCarts = cart.getCartItems().stream()
+                .map(cartService::mapCartItemToResponse)
+                .collect(Collectors.toSet());
+
+        getCustomerCartResponse.setCartItems(cartItemResponseToCarts);
+
+        createOrderResponse.setCart(getCustomerCartResponse);
 
         createOrderResponse.setOrderDate(LocalDateTime.now());
 
