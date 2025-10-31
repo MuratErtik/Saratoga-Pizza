@@ -15,6 +15,7 @@ import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,6 +44,34 @@ public class CartService {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+
+
+//    @RabbitListener(queues = RabbitConfig.ORDER_CREATED_QUEUE)
+//    public void handleOrderCreated(Long userId) {
+//
+//        User user = userRepository.findByUserId(userId);
+//        if (user == null) throw new AuthException("User not found");
+//
+//
+//        Optional<Cart> existingCart = cartRepository.findByUserAndCheckedOutFalse(user);
+//        if (existingCart.isPresent()) {
+//            log.warn("Active cart already exists for userId={}, skipping creation", userId);
+//            return;
+//        }
+//
+//        Cart newCart = new Cart();
+//        newCart.setUser(user);
+//        newCart.setCreatedAt(LocalDateTime.now());
+//        newCart.setCheckedOut(false);
+//        newCart.setTotalSellingPrice(BigDecimal.ZERO);
+//        newCart.setTotalItem(0);
+//        newCart.setDiscount(BigDecimal.ZERO);
+//        newCart.setUpdatedAt(LocalDateTime.now());
+//        cartRepository.save(newCart);
+//
+//        log.info("✅ New cart created for userId={}", userId);
+//    }
 
 
 
