@@ -14,6 +14,9 @@ public class RabbitConfig {
 
     public static final String INVENTORY_QUEUE = "inventory.queue";
 
+    public static final String ORDER_CREATED_QUEUE = "order.created.queue";
+    public static final String ORDER_CREATED_ROUTING_KEY = "order.created.key";
+
 
     @Bean
     public Queue queue() {
@@ -23,6 +26,11 @@ public class RabbitConfig {
     @Bean
     public Queue inventoryQueue() {
         return new Queue(INVENTORY_QUEUE, true);
+    }
+
+    @Bean
+    public Queue orderCreatedQueue() {
+        return new Queue(ORDER_CREATED_QUEUE, true);
     }
 
     // JSON convertor (make object serialize/deserialize as automatic)
@@ -39,5 +47,10 @@ public class RabbitConfig {
     @Bean
     public Binding binding(Queue queue, TopicExchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding bindingOrderCreated(Queue orderCreatedQueue, TopicExchange exchange) {
+        return BindingBuilder.bind(orderCreatedQueue).to(exchange).with(ORDER_CREATED_ROUTING_KEY);
     }
 }
