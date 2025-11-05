@@ -150,5 +150,51 @@ public class EmailService {
         }
     }
 
+    public void sendMailAfterTheOrderToAdmin(Order order) throws MessagingException {
+        try {
+            User user = order.getCart().getUser();
+            String fullName = user.getName() + " " + user.getLastname();
+
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "utf-8");
+
+            String subject = "🧾 New Order Received - Saratoga Pizza";
+
+            String text = "Hello Saratoga Pizza Team,\n\n"
+                    + "A new order has just been placed!\n\n"
+                    + "**Customer Information**\n"
+                    + "• Name: " + fullName + "\n"
+                    + "• Email: " + user.getEmail() + "\n"
+                    + "• Phone: " + (user.getMobileNo() != null ? user.getMobileNo() : "N/A") + "\n\n"
+                    + "**Order Details**\n"
+                    + "• Order ID: " + order.getId() + "\n"
+                    + "• Tracking Code: " + (order.getTrackingCode() != null ? order.getTrackingCode() : "Not generated yet") + "\n"
+                    + "• Order Date: " + order.getOrderDate() + "\n"
+                    + "• Delivery Address: " + order.getShippingAddress().getAddressName() + "\n"
+                    + "• Estimated Delivery Time: " + order.getDeliverDate() + "\n"
+                    + "• Total Amount: $" + order.getCart().getTotalSellingPrice() + "\n\n"
+                    + "Please check the admin dashboard for full details.\n\n"
+                    + "Regards,\n"
+                    + "Saratoga Pizza System";
+
+            messageHelper.setSubject(subject);
+            messageHelper.setText(text);
+
+            messageHelper.setTo("orders@saratogapizza.com");
+            messageHelper.setFrom("no-reply@saratogapizza.com");
+
+            javaMailSender.send(mimeMessage);
+            log.info("Admin notification email sent successfully for order {}", order.getId());
+
+        } catch (MailException e) {
+            log.error("Failed to send admin email: {}", e.getMessage());
+            throw new MailSendException("Failed to send admin notification email");
+        } catch (MessagingException e) {
+            log.error("Messaging exception while sending admin email: {}", e.getMessage());
+            throw new RuntimeException("Email message creation failed", e);
+        }
+    }
+
+
 }
 
