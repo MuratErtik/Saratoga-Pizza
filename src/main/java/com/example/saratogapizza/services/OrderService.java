@@ -18,6 +18,7 @@ import com.example.saratogapizza.repositories.OrderRepository;
 import com.example.saratogapizza.repositories.UserRepository;
 import com.example.saratogapizza.requests.CreateOrderRequest;
 import com.example.saratogapizza.responses.*;
+import com.example.saratogapizza.utils.TrackingCodeGenerator;
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +93,13 @@ public class OrderService {
 
         order.setNotes(request.getNotes());
 
-        orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order); // ID is now generated
+
+        String code = TrackingCodeGenerator.generateCode(savedOrder);
+        savedOrder.setTrackingCode(code);
+
+        orderRepository.save(savedOrder); // update with tracking code
+
 
         CreateOrderResponse createOrderResponse = new CreateOrderResponse();
 
