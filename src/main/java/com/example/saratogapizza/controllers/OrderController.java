@@ -53,6 +53,5 @@ public class OrderController {
 | ----------------- | ------------ | ---------------------------------------- |
 | `order.created`   | OrderService | InventoryService, EmailService           |
 | `order.canceled`  | OrderService | InventoryService (stok iade)             |
-| `order.delivered` | OrderService | AnalyticsService (istatistik güncelleme) |
 
  */
