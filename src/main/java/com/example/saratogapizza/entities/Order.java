@@ -31,31 +31,34 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne
-    private User user;
+//    @ManyToOne
+//    private User user;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> orderItems = new ArrayList<>();
+//    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<OrderItem> orderItems = new ArrayList<>();
 
     @ManyToOne
     private Address shippingAddress;
 
+    @OneToOne
+    private Cart cart;
 
-    @Embedded
-    private PaymentDetail paymentDetail;
+
+//    @Embedded
+//    private PaymentDetail paymentDetail;
 
 
-    private BigDecimal totalSellingPrice;
-
-    private BigDecimal discount;
+//    private BigDecimal totalSellingPrice;
+//
+//    private BigDecimal discount;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
-    private int totalItem;
+//    private int totalItem;
 
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus= PaymentStatus.PENDING;
+//    @Enumerated(EnumType.STRING)
+//    private PaymentStatus paymentStatus= PaymentStatus.PENDING;
 
     private LocalDateTime orderDate = LocalDateTime.now();
 
@@ -65,7 +68,7 @@ public class Order {
 
     private String trackingCode;
 
-    private LocalDateTime paymentDate;
+//    private LocalDateTime paymentDate;
 
 
 

@@ -1,9 +1,11 @@
 package com.example.saratogapizza.services;
 
+import com.example.saratogapizza.entities.Order;
 import com.example.saratogapizza.entities.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
@@ -107,5 +110,91 @@ public class EmailService {
             throw new RuntimeException(e);
         }
     }
+
+    public void sendMailAfterTheOrderToCustomer(Order order) throws MessagingException {
+        try {
+            User user = order.getCart().getUser();
+            String fullName = user.getName() + " " + user.getLastname();
+
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "utf-8");
+
+            String subject = "Your Saratoga Pizza Order Confirmation";
+            String text = "Dear " + fullName + ",\n\n"
+                    + "Thank you for ordering from Saratoga Pizza!\n"
+                    + "We’ve received your order and it’s being prepared right now.\n\n"
+                    + "**Order Details**\n"
+                    + "• Order ID: " + order.getId() + "\n"
+                    + "• Order Date: " + order.getOrderDate() + "\n"
+                    + "• Delivery Address: " + order.getShippingAddress().getAddressName() + "\n"
+                    + "• Estimated Delivery Time: " + order.getDeliverDate() + "\n"
+                    + "• Total Amount: $" + order.getCart().getTotalSellingPrice() + "\n\n"
+                    + "You will receive another email once your order is out for delivery.\n\n"
+                    + "Thank you for choosing Saratoga Pizza \n"
+                    + "Have a great day!";
+
+            messageHelper.setSubject(subject);
+            messageHelper.setText(text);
+            messageHelper.setTo(user.getEmail());
+            messageHelper.setFrom("no-reply@saratogapizza.com");
+
+            javaMailSender.send(mimeMessage);
+            log.info("Order confirmation email sent successfully to {}", user.getEmail());
+
+        } catch (MailException e) {
+            log.error("Failed to send order email: {}", e.getMessage());
+            throw new MailSendException("Failed to send order confirmation email");
+        } catch (MessagingException e) {
+            log.error("Messaging exception while sending order email: {}", e.getMessage());
+            throw new RuntimeException("Email message creation failed", e);
+        }
+    }
+
+    public void sendMailAfterTheOrderToAdmin(Order order) throws MessagingException {
+        try {
+            User user = order.getCart().getUser();
+            String fullName = user.getName() + " " + user.getLastname();
+
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "utf-8");
+
+            String subject = "🧾 New Order Received - Saratoga Pizza";
+
+            String text = "Hello Saratoga Pizza Team,\n\n"
+                    + "A new order has just been placed!\n\n"
+                    + "**Customer Information**\n"
+                    + "• Name: " + fullName + "\n"
+                    + "• Email: " + user.getEmail() + "\n"
+                    + "• Phone: " + (user.getMobileNo() != null ? user.getMobileNo() : "N/A") + "\n\n"
+                    + "**Order Details**\n"
+                    + "• Order ID: " + order.getId() + "\n"
+                    + "• Tracking Code: " + (order.getTrackingCode() != null ? order.getTrackingCode() : "Not generated yet") + "\n"
+                    + "• Order Date: " + order.getOrderDate() + "\n"
+                    + "• Delivery Address: " + order.getShippingAddress().getAddressName() + "\n"
+                    + "• Estimated Delivery Time: " + order.getDeliverDate() + "\n"
+                    + "• Total Amount: $" + order.getCart().getTotalSellingPrice() + "\n\n"
+                    + "Please check the admin dashboard for full details.\n\n"
+                    + "Regards,\n"
+                    + "Saratoga Pizza System";
+
+            messageHelper.setSubject(subject);
+            messageHelper.setText(text);
+
+            messageHelper.setTo("orders@saratogapizza.com");
+            messageHelper.setFrom("no-reply@saratogapizza.com");
+
+            javaMailSender.send(mimeMessage);
+            log.info("Admin notification email sent successfully for order {}", order.getId());
+
+        } catch (MailException e) {
+            log.error("Failed to send admin email: {}", e.getMessage());
+            throw new MailSendException("Failed to send admin notification email");
+        } catch (MessagingException e) {
+            log.error("Messaging exception while sending admin email: {}", e.getMessage());
+            throw new RuntimeException("Email message creation failed", e);
+        }
+    }
+
+
 }
 

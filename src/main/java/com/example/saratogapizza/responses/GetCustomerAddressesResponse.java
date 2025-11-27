@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class GetCustomerAddressesResponse {
 
+    private Long id;
     private String street;        // Cadde/Sokak
     private String buildingNo;    // Bina No
     private String floorNo;       // Kat No
